@@ -56,13 +56,13 @@ CONFIGS=(
   "cfg10_max_sensitivity|c=30,m=100,robust,min_af=5|-c 30 -m 100 --robust --min-af 5"
 )
 
-HEADER="method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct"
+HEADER=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
 
 SUMMARY="$OUTPUT_ROOT/skani_runs.csv"
 echo "name,param_setup,skani_flags,dist_file,wall_seconds,num_pairs" > "$SUMMARY"
 
 ALL_TSV="$DIST_DIR/all_skani.tsv"
-printf '%s\n' "$HEADER" > "$ALL_TSV"
+echo "$HEADER" > "$ALL_TSV"
 
 for entry in "${CONFIGS[@]}"; do
   IFS='|' read -r cfg_name param_setup skani_flags <<< "$entry"
@@ -83,10 +83,10 @@ for entry in "${CONFIGS[@]}"; do
     -o "$RAW_FILE"
 
   {
-    printf '%s\n' "$HEADER"
+    echo "$HEADER"
     awk -v method="skani" -v setup="$param_setup" \
       'BEGIN { FS="\t"; OFS="\t" }
-       NF >= 5 {
+       NR > 1 && NF >= 5 {
          gsub(/^.*\/|\.(fasta|fa|fna)(\.gz)?$/, "", $1);
          gsub(/^.*\/|\.(fasta|fa|fna)(\.gz)?$/, "", $2);
          print method, setup, $1, $2, $3, $4, $5

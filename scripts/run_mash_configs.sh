@@ -42,13 +42,13 @@ echo "Found $NUM_GENOMES genomes in $GENOME_DIR"
 echo "Output: $OUTPUT_ROOT"
 echo ""
 
-HEADER="method\tparam_setup\tgenome_a\tgenome_b\tdistance\tp_value\tshared_hashes\tani_pct"
+HEADER=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tp_value\tshared_hashes\tani_pct'
 
 SUMMARY="$OUTPUT_ROOT/mash_runs.csv"
 echo "name,k,s,sketch_file,dist_file,wall_seconds" > "$SUMMARY"
 
 ALL_TSV="$DIST_DIR/all_mash.tsv"
-printf '%s\n' "$HEADER" > "$ALL_TSV"
+echo "$HEADER" > "$ALL_TSV"
 
 for entry in "${CONFIGS[@]}"; do
   IFS='|' read -r cfg_name k_val s_val <<< "$entry"
@@ -81,7 +81,7 @@ for entry in "${CONFIGS[@]}"; do
 
   echo "  Formatting TSV..."
   {
-    printf '%s\n' "$HEADER"
+    echo "$HEADER"
     awk -v method="mash" -v setup="$param_setup" \
       'BEGIN { FS="\t"; OFS="\t" }
        NF >= 5 {
