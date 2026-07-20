@@ -53,7 +53,9 @@ CONFIGS=(
   "cfg07_median|c=70,m=1000,median|-c 70 --median"
   "cfg08_raw_mean|c=70,m=1000,no_learned_ani|-c 70 --no-learned-ani"
   "cfg09_low_af|c=70,m=1000,min_af=5|-c 70 --min-af 5"
-  "cfg10_max_sensitivity|c=30,m=100,robust,min_af=5|-c 30 -m 100 --robust --min-af 5"
+  "cfg09_zero_af|c=70,m=1000,min_af=0|-c 70 --min-af 0"
+  "cfg10_high_sensitivity|c=30,m=100,robust,min_af=5|-c 30 -m 100 --robust --min-af 5"
+  "cfg10_max_sensitivity|c=30,m=100,robust,min_af=0|-c 30 -m 100 --robust --min-af 0"
 )
 
 HEADER=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
