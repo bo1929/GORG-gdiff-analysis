@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+
+# Tool intermediates / local run outputs
+*.delta
+*.1delta
+*.coords
+*.paf
+*.blastn6
+*_db.*
+windows.fa
+
+# Local workdirs / scratch outputs (keep scripts, not runs)
+**/mm_work/
+**/mu_work/
+**/blast_work/
+**/_mu_test/
