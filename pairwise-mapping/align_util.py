@@ -18,16 +18,21 @@ from typing import Iterator, List, Optional, Sequence, Tuple
 # Block TSV schema used by minimap_blocks.py and mummer_blocks.py
 BLOCK_HEADER = (
     "q_contig\tq_start\tq_end\tq_strand\t"
-    "s_contig\ts_start\ts_end\ts_strand\t"
+    "s_contig\tssag\ts_start\ts_end\ts_strand\t"
     "nident\taln_span\tidentity\tdistance\t"
     "tool\traw_score"
 )
 
 BlockRow = Tuple[
     str, int, int, str,  # q
-    str, int, int, str,  # s
+    str, int, int, str,  # s (contig + coords/strand; ssag derived)
     int, int, object,  # nident, aln_span, raw_score
 ]
+
+
+def sag_of(seqid: str) -> str:
+    """Genome id from a contig header (token before _NODE / first underscore group)."""
+    return seqid.split("_NODE")[0].split("_")[0]
 
 
 def identity_distance(nident: int, aln_span: int) -> Tuple[float, float]:
@@ -119,7 +124,7 @@ def write_blocks(
                 continue
             oh.write(
                 f"{q_contig}\t{q_start}\t{q_end}\t{q_strand}\t"
-                f"{s_contig}\t{s_start}\t{s_end}\t{s_strand}\t"
+                f"{s_contig}\t{sag_of(s_contig)}\t{s_start}\t{s_end}\t{s_strand}\t"
                 f"{nident}\t{aln_span}\t{identity:.6f}\t{distance:.6f}\t"
                 f"{tool}\t{raw_score}\n"
             )

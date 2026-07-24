@@ -123,6 +123,7 @@ def run_blastn(
 
 
 def best_hit_by_nident(blast_path: Path) -> Dict[str, Hit]:
+    """Best HSP per query id (single subject or global best)."""
     best: Dict[str, Hit] = {}
     with blast_path.open() as fh:
         for line in fh:
@@ -139,13 +140,34 @@ def best_hit_by_nident(blast_path: Path) -> Dict[str, Hit]:
     return best
 
 
+def best_hit_by_nident_per_subject(blast_path: Path) -> Dict[Tuple[str, str], Hit]:
+    """Best HSP per (query id, subject genome id)."""
+    best: Dict[Tuple[str, str], Hit] = {}
+    with blast_path.open() as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            f = line.rstrip("\n").split("\t")
+            if len(f) < 12:
+                continue
+            qid, sid = f[0], f[1]
+            ssag = u.sag_of(sid)
+            nident, bits = int(f[2]), float(f[9])
+            key = (qid, ssag)
+            hit: Hit = (nident, sid, bits, int(f[5]), int(f[6]), int(f[7]), int(f[8]))
+            prev = best.get(key)
+            if prev is None or nident > prev[0] or (nident == prev[0] and bits > prev[2]):
+                best[key] = hit
+    return best
+
+
 def write_window_table(
     meta: List[Tuple[str, str, int, int, int]], best: Dict[str, Hit], out_path: Path
 ) -> None:
     with out_path.open("w") as oh:
         oh.write(
             "window_id\tcontig\tq_start\tq_end\twindow_len\t"
-            "nident\tidentity\tdistance\tsseqid\tq_aln_start\tq_aln_end\t"
+            "nident\tidentity\tdistance\tssag\tsseqid\tq_aln_start\tq_aln_end\t"
             "s_start\ts_end\tbitscore\n"
         )
         for wid, contig, start1, end1, win_len in meta:
@@ -153,7 +175,7 @@ def write_window_table(
             if hit is None:
                 oh.write(
                     f"{wid}\t{contig}\t{start1}\t{end1}\t{win_len}\t"
-                    f"0\t0.000000\t1.000000\t*\t*\t*\t*\t*\t*\n"
+                    f"0\t0.000000\t1.000000\t*\t*\t*\t*\t*\t*\t*\n"
                 )
                 continue
             nident, sid, bitscore, qs, qe, ss, se = hit
@@ -161,8 +183,41 @@ def write_window_table(
             oh.write(
                 f"{wid}\t{contig}\t{start1}\t{end1}\t{win_len}\t"
                 f"{nident}\t{identity:.6f}\t{distance:.6f}\t"
-                f"{sid}\t{qs}\t{qe}\t{ss}\t{se}\t{bitscore:.1f}\n"
+                f"{u.sag_of(sid)}\t{sid}\t{qs}\t{qe}\t{ss}\t{se}\t{bitscore:.1f}\n"
             )
+
+
+def write_window_table_by_subject(
+    meta: List[Tuple[str, str, int, int, int]],
+    best: Dict[Tuple[str, str], Hit],
+    out_path: Path,
+) -> int:
+    """One row per (window, subject) with a hit; empty windows omitted."""
+    by_window: Dict[str, List[str]] = {}
+    for wid, ssag in best:
+        by_window.setdefault(wid, []).append(ssag)
+    for ssags in by_window.values():
+        ssags.sort()
+
+    n = 0
+    with out_path.open("w") as oh:
+        oh.write(
+            "window_id\tcontig\tq_start\tq_end\twindow_len\t"
+            "nident\tidentity\tdistance\tssag\tsseqid\tq_aln_start\tq_aln_end\t"
+            "s_start\ts_end\tbitscore\n"
+        )
+        for wid, contig, start1, end1, win_len in meta:
+            for ssag in by_window.get(wid, ()):
+                nident, sid, bitscore, qs, qe, ss, se = best[(wid, ssag)]
+                identity, distance = u.identity_distance(nident, win_len)
+                oh.write(
+                    f"{wid}\t{contig}\t{start1}\t{end1}\t{win_len}\t"
+                    f"{nident}\t{identity:.6f}\t{distance:.6f}\t"
+                    f"{ssag}\t{sid}\t{qs}\t{qe}\t{ss}\t{se}\t{bitscore:.1f}\n"
+                )
+                n += 1
+    return n
+
 
 
 def write_full_summary(
@@ -214,6 +269,11 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p.add_argument("--evalue", default=BLAST_EVALUE)
     p.add_argument("--max-target-seqs", type=int, default=BLAST_MAX_TARGET_SEQS)
     p.add_argument("--max-hsps", type=int, default=BLAST_MAX_HSPS)
+    p.add_argument(
+        "--by-subject",
+        action="store_true",
+        help="keep best hit per (window, subject genome); for multi-genome subject DBs",
+    )
     p.add_argument("--workdir", type=Path, default=None)
     p.add_argument("--keep-tmp", action="store_true")
     return p.parse_args(argv)
@@ -260,13 +320,26 @@ def main(argv: Optional[List[str]] = None) -> int:
             word_size=args.word_size,
             evalue=args.evalue,
         )
-        best = best_hit_by_nident(blast_out)
-        print(f"  {sum(1 for w, *_ in meta if w in best)}/{len(meta)} windows with a hit",
-              file=sys.stderr)
-        write_window_table(meta, best, args.out)
-        print(f"wrote {args.out}", file=sys.stderr)
+        if args.by_subject:
+            best_ps = best_hit_by_nident_per_subject(blast_out)
+            n_win = len({w for w, _ in best_ps})
+            print(f"  {n_win}/{len(meta)} windows with >=1 subject hit "
+                  f"({len(best_ps)} window-subject pairs)", file=sys.stderr)
+            n = write_window_table_by_subject(meta, best_ps, args.out)
+            print(f"wrote {n} rows -> {args.out}", file=sys.stderr)
+        else:
+            best = best_hit_by_nident(blast_out)
+            print(
+                f"  {sum(1 for w, *_ in meta if w in best)}/{len(meta)} windows with a hit",
+                file=sys.stderr,
+            )
+            write_window_table(meta, best, args.out)
+            print(f"wrote {args.out}", file=sys.stderr)
 
         if args.full_out is not None:
+            if args.by_subject:
+                print("note: --full-out with --by-subject uses global best per contig",
+                      file=sys.stderr)
             full_blast = work / "full.blastn6"
             print(f"running blastn (full query) -> {full_blast}", file=sys.stderr)
             run_blastn(
