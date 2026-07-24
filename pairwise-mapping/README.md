@@ -28,7 +28,8 @@ GDIFF=/path/to/gdiff \
 ./run_benchmark.sh /path/to/contigs-panspecies queries.txt /path/to/benchmark_out
 ```
 
-Optional: `REFS=refs.txt` `FORCE=1` `WINDOW=1000`.
+Optional: `REFS=refs.txt` `FORCE=1` `WINDOW=1000`
+`GDIFF_SKETCH_ARGS` / `GDIFF_MAP_ARGS` (default map: `-l $((WINDOW/2)) -d ...`).
 Skips non-empty outputs unless `FORCE=1`.
 
 ## Single pair

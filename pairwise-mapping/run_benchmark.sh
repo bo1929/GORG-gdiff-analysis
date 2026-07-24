@@ -11,9 +11,9 @@
 #   REFS=refs.txt          # default: all genomes in contig_dir
 #   JOBS=8 THREADS=4
 #   SENSITIVE=1 FORCE=0
-#   GDIFF=/path/to/gdiff WINDOW=1000
-#   GDIFF_DISTS="0.01 0.1 0.25 0.5 0.75 1.0 1.25 1.5"
-#   GDIFF_MINLEN=500 MAX_TARGET_SEQS=5000
+#   GDIFF=/path/to/gdiff WINDOW=1000 MAX_TARGET_SEQS=5000
+#   GDIFF_SKETCH_ARGS=""   # extra args after: gdiff sketch -o <sketch>
+#   GDIFF_MAP_ARGS="..."   # default: -l $((WINDOW/2)) -d <dists>
 set -euo pipefail
 
 CONTIG_DIR="${1:?Usage: $0 <contig_dir> <queries.txt> [outdir]}"
@@ -31,8 +31,8 @@ SENSITIVE="${SENSITIVE:-0}"
 FORCE="${FORCE:-0}"
 WINDOW="${WINDOW:-1000}"
 GDIFF_BIN="${GDIFF:-$(command -v gdiff || true)}"
-GDIFF_DISTS="${GDIFF_DISTS:-0.01 0.1 0.25 0.5 0.75 1.0 1.25 1.5}"
-GDIFF_MINLEN="${GDIFF_MINLEN:-500}"
+GDIFF_SKETCH_ARGS="${GDIFF_SKETCH_ARGS:-}"
+GDIFF_MAP_ARGS="${GDIFF_MAP_ARGS:--l $((WINDOW / 2)) -d 0.01 0.1 0.25 0.5 0.75 1.0 1.25 1.5}"
 MAX_TARGET_SEQS="${MAX_TARGET_SEQS:-5000}"
 
 mkdir -p "$OUTDIR"/cache "$OUTDIR"/gdiff "$OUTDIR"/minimap \
@@ -115,7 +115,8 @@ if have gdiff; then
   SKETCH="$OUTDIR/cache/refs.gdiff"
   if ! skip "$SKETCH"; then
     echo "gdiff sketch -> $SKETCH"
-    set -- "$GDIFF_BIN" sketch -o "$SKETCH"
+    # shellcheck disable=SC2086
+    set -- "$GDIFF_BIN" sketch -o "$SKETCH" $GDIFF_SKETCH_ARGS
     for r in $REFS_LIST; do
       set -- "$@" -i "$(fa_for "$r")"
     done
@@ -133,7 +134,7 @@ for q in $QUERIES; do
     else
       echo "  gdiff"
       # shellcheck disable=SC2086
-      "$GDIFF_BIN" map -q "$QFA" -i "$SKETCH" -o "$out" -l "$GDIFF_MINLEN" -d $GDIFF_DISTS
+      "$GDIFF_BIN" map -q "$QFA" -i "$SKETCH" -o "$out" $GDIFF_MAP_ARGS
     fi
   fi
 
