@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-sliding_blastn.py -- sliding-window BLASTn identity (query vs subject).
+blastn_blocks.py -- pairwise blocks via ultra-sensitive BLASTn.
 
 Edit CONFIG below. CLI overrides CONFIG.
 
-Windows:
-  identity = 100 * nident / window_length
+Default: full-query blastn HSPs as blocks (same TSV schema as mummer/minimap).
+Optional -W/--window: sliding-window mode (window TSV; identity vs window length).
+
+  identity = 100 * nident / aln_span
   distance = 1 - identity / 100
 
---full-out (best HSP per contig):
-  identity = 100 * nident / aligned_query_span
+Block mode: aln_span = aligned query span. Coords 1-based inclusive.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 import align_util as u
 
@@ -25,10 +26,12 @@ import align_util as u
 # CONFIG
 # =============================================================================
 
-DEFAULT_THREADS = 1
+DEFAULT_THREADS = 8
+DEFAULT_MIN_ALN_LEN = 0
+DEFAULT_MIN_IDENTITY = 0.0
+
+# Default = ultra-sensitive (also applied by --sensitive)
 BLAST_TASK = "blastn"
-BLAST_WORD_SIZE = 7  # smaller = more sensitive
-BLAST_EVALUE = "1000"
 BLAST_DUST = "no"
 BLAST_MAX_TARGET_SEQS = 5
 BLAST_MAX_HSPS = 5
@@ -37,8 +40,14 @@ BLAST_OUTFMT = (
     "sstart send bitscore pident evalue"
 )
 
+SENSITIVE_PRESET = {
+    "word_size": 7,  # smaller = more sensitive (NCBI default is 11)
+    "evalue": "1000",
+}
+
 # =============================================================================
 
+TOOL = "blastn"
 Hit = Tuple[int, str, float, int, int, int, int]  # nident, sid, bits, qs, qe, ss, se
 
 
@@ -122,8 +131,31 @@ def run_blastn(
     )
 
 
+def parse_blast_blocks(blast_path: Path) -> Iterator[u.BlockRow]:
+    with blast_path.open() as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            f = line.rstrip("\n").split("\t")
+            if len(f) < 12:
+                continue
+            qid, sid = f[0], f[1]
+            nident = int(f[2])
+            qs, qe = int(f[5]), int(f[6])
+            ss, se = int(f[7]), int(f[8])
+            bits = float(f[9])
+            s_strand = "+" if ss <= se else "-"
+            s_start, s_end = (ss, se) if ss <= se else (se, ss)
+            q_start, q_end = (qs, qe) if qs <= qe else (qe, qs)
+            aln_span = q_end - q_start + 1
+            yield (
+                qid, q_start, q_end, "+",
+                sid, s_start, s_end, s_strand,
+                nident, aln_span, bits,
+            )
+
+
 def best_hit_by_nident(blast_path: Path) -> Dict[str, Hit]:
-    """Best HSP per query id (single subject or global best)."""
     best: Dict[str, Hit] = {}
     with blast_path.open() as fh:
         for line in fh:
@@ -141,7 +173,6 @@ def best_hit_by_nident(blast_path: Path) -> Dict[str, Hit]:
 
 
 def best_hit_by_nident_per_subject(blast_path: Path) -> Dict[Tuple[str, str], Hit]:
-    """Best HSP per (query id, subject genome id)."""
     best: Dict[Tuple[str, str], Hit] = {}
     with blast_path.open() as fh:
         for line in fh:
@@ -192,7 +223,6 @@ def write_window_table_by_subject(
     best: Dict[Tuple[str, str], Hit],
     out_path: Path,
 ) -> int:
-    """One row per (window, subject) with a hit; empty windows omitted."""
     by_window: Dict[str, List[str]] = {}
     for wid, ssag in best:
         by_window.setdefault(wid, []).append(ssag)
@@ -219,140 +249,166 @@ def write_window_table_by_subject(
     return n
 
 
-
-def write_full_summary(
-    query_records: List[Tuple[str, str]], best: Dict[str, Hit], out_path: Path
-) -> None:
-    with out_path.open("w") as oh:
-        oh.write(
-            "qseqid\tqlen\taln_qlen\tnident\tidentity\tdistance\tsseqid\t"
-            "q_aln_start\tq_aln_end\ts_start\ts_end\tbitscore\n"
-        )
-        total_qlen = total_aln = total_nident = 0
-        for qid, seq in query_records:
-            qlen = len(seq)
-            total_qlen += qlen
-            hit = best.get(qid)
-            if hit is None:
-                oh.write(
-                    f"{qid}\t{qlen}\t0\t0\t0.000000\t1.000000\t*\t*\t*\t*\t*\t*\n"
-                )
-                continue
-            nident, sid, bitscore, qs, qe, ss, se = hit
-            aln_qlen = abs(qe - qs) + 1
-            total_aln += aln_qlen
-            total_nident += nident
-            identity, distance = u.identity_distance(nident, aln_qlen)
-            oh.write(
-                f"{qid}\t{qlen}\t{aln_qlen}\t{nident}\t{identity:.6f}\t"
-                f"{distance:.6f}\t{sid}\t{qs}\t{qe}\t{ss}\t{se}\t{bitscore:.1f}\n"
-            )
-        if total_aln:
-            g_ident, g_dist = u.identity_distance(total_nident, total_aln)
-            oh.write(
-                f"__ALL__\t{total_qlen}\t{total_aln}\t{total_nident}\t"
-                f"{g_ident:.6f}\t{g_dist:.6f}\t*\t*\t*\t*\t*\t*\n"
-            )
-
-
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Sliding-window BLASTn identities.",
+        description="Emit pairwise alignment blocks via ultra-sensitive BLASTn.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     u.add_io_args(p)
-    p.add_argument("-W", "--window", type=int, required=True, help="window size (bp)")
-    p.add_argument("--step", type=int, default=None, help="step size (default: W/2)")
-    p.add_argument("--full-out", type=Path, default=None, help="full-query summary TSV")
-    p.add_argument("-t", "--threads", type=int, default=DEFAULT_THREADS)
-    p.add_argument("--word-size", type=int, default=BLAST_WORD_SIZE)
-    p.add_argument("--evalue", default=BLAST_EVALUE)
+    u.add_block_filter_args(
+        p,
+        threads=DEFAULT_THREADS,
+        min_aln_len=DEFAULT_MIN_ALN_LEN,
+        min_identity=DEFAULT_MIN_IDENTITY,
+    )
+    p.add_argument(
+        "-W",
+        "--window",
+        type=int,
+        default=None,
+        help="if set, sliding-window mode (window TSV instead of blocks)",
+    )
+    p.add_argument("--step", type=int, default=None, help="window step (default: W/2)")
     p.add_argument("--max-target-seqs", type=int, default=BLAST_MAX_TARGET_SEQS)
     p.add_argument("--max-hsps", type=int, default=BLAST_MAX_HSPS)
     p.add_argument(
         "--by-subject",
         action="store_true",
-        help="keep best hit per (window, subject genome); for multi-genome subject DBs",
+        help="sliding mode only: best hit per (window, subject genome)",
     )
-    p.add_argument("--workdir", type=Path, default=None)
-    p.add_argument("--keep-tmp", action="store_true")
+
+    sens = p.add_argument_group("sensitivity (edit SENSITIVE_PRESET; default is ultra-sensitive)")
+    s = SENSITIVE_PRESET
+    sens.add_argument(
+        "--sensitive",
+        action="store_true",
+        help=f"apply preset -word_size {s['word_size']} -evalue {s['evalue']} (already default)",
+    )
+    sens.add_argument("--word-size", type=int, default=SENSITIVE_PRESET["word_size"])
+    sens.add_argument("--evalue", default=SENSITIVE_PRESET["evalue"])
     return p.parse_args(argv)
 
 
-def main(argv: Optional[List[str]] = None) -> int:
-    args = parse_args(argv)
-    u.require_tools("blastn", "makeblastdb")
+def resolve_blast_params(args: argparse.Namespace) -> Tuple[int, str]:
+    if args.sensitive:
+        return int(SENSITIVE_PRESET["word_size"]), str(SENSITIVE_PRESET["evalue"])
+    return int(args.word_size), str(args.evalue)
+
+
+def make_db(subject: Path, db: Path) -> None:
+    print(f"building subject DB -> {db}", file=sys.stderr)
+    u.run_cmd(
+        [
+            "makeblastdb",
+            "-in", str(subject.resolve()),
+            "-dbtype", "nucl",
+            "-out", str(db),
+            "-parse_seqids",
+        ]
+    )
+
+
+def run_sliding(
+    args: argparse.Namespace,
+    work: Path,
+    db: Path,
+    word_size: int,
+    evalue: str,
+) -> int:
+    assert args.window is not None
     if args.window <= 0:
         raise SystemExit("--window must be > 0")
     step = args.step if args.step is not None else max(1, args.window // 2)
     if step <= 0:
         raise SystemExit("--step must be > 0")
+
+    query_records = read_fasta(args.query)
+    win_fa = work / "windows.fa"
+    print(f"writing windows (W={args.window}, step={step}) -> {win_fa}", file=sys.stderr)
+    meta = write_window_fasta(query_records, args.window, step, win_fa)
+    print(f"  {len(meta)} windows", file=sys.stderr)
+
+    blast_out = work / "windows.blastn6"
+    print(f"running blastn (windows) -> {blast_out}", file=sys.stderr)
+    run_blastn(
+        win_fa, db, blast_out,
+        threads=args.threads,
+        max_target_seqs=args.max_target_seqs,
+        max_hsps=args.max_hsps,
+        word_size=word_size,
+        evalue=evalue,
+    )
+    if args.by_subject:
+        best_ps = best_hit_by_nident_per_subject(blast_out)
+        n_win = len({w for w, _ in best_ps})
+        print(
+            f"  {n_win}/{len(meta)} windows with >=1 subject hit "
+            f"({len(best_ps)} window-subject pairs)",
+            file=sys.stderr,
+        )
+        n = write_window_table_by_subject(meta, best_ps, args.out)
+        print(f"wrote {n} rows -> {args.out}", file=sys.stderr)
+    else:
+        best = best_hit_by_nident(blast_out)
+        print(
+            f"  {sum(1 for w, *_ in meta if w in best)}/{len(meta)} windows with a hit",
+            file=sys.stderr,
+        )
+        write_window_table(meta, best, args.out)
+        print(f"wrote {args.out}", file=sys.stderr)
+    return 0
+
+
+def run_blocks(
+    args: argparse.Namespace,
+    work: Path,
+    db: Path,
+    word_size: int,
+    evalue: str,
+) -> int:
+    if args.by_subject:
+        print("note: --by-subject applies only with -W/--window; ignored", file=sys.stderr)
+
+    blast_out = work / "aln.blastn6"
+    print(f"running blastn -> {blast_out}", file=sys.stderr)
+    run_blastn(
+        args.query.resolve(), db, blast_out,
+        threads=args.threads,
+        max_target_seqs=args.max_target_seqs,
+        max_hsps=args.max_hsps,
+        word_size=word_size,
+        evalue=evalue,
+    )
+    n = u.write_blocks(
+        parse_blast_blocks(blast_out),
+        args.out,
+        tool=TOOL,
+        min_aln_len=args.min_aln_len,
+        min_identity=args.min_identity,
+    )
+    print(f"wrote {n} blocks -> {args.out}", file=sys.stderr)
+    return 0
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    args = parse_args(argv)
+    u.require_tools("blastn", "makeblastdb")
     u.check_fastas(args.query, args.subject)
+    word_size, evalue = resolve_blast_params(args)
+    print(
+        f"blastn options: -task {BLAST_TASK} -word_size {word_size} "
+        f"-evalue {evalue} -dust {BLAST_DUST}",
+        file=sys.stderr,
+    )
 
     with u.managed_workdir(
-        args.workdir, prefix="sliding_blastn_", keep_tmp=args.keep_tmp
+        args.workdir, prefix="blastn_blocks_", keep_tmp=args.keep_tmp
     ) as work:
-        query_records = read_fasta(args.query)
         db = work / "subject_db"
-        print(f"building subject DB -> {db}", file=sys.stderr)
-        u.run_cmd(
-            [
-                "makeblastdb",
-                "-in", str(args.subject.resolve()),
-                "-dbtype", "nucl",
-                "-out", str(db),
-                "-parse_seqids",
-            ]
-        )
-
-        win_fa = work / "windows.fa"
-        print(f"writing windows (W={args.window}, step={step}) -> {win_fa}", file=sys.stderr)
-        meta = write_window_fasta(query_records, args.window, step, win_fa)
-        print(f"  {len(meta)} windows", file=sys.stderr)
-
-        blast_out = work / "windows.blastn6"
-        print(f"running blastn (windows) -> {blast_out}", file=sys.stderr)
-        run_blastn(
-            win_fa, db, blast_out,
-            threads=args.threads,
-            max_target_seqs=args.max_target_seqs,
-            max_hsps=args.max_hsps,
-            word_size=args.word_size,
-            evalue=args.evalue,
-        )
-        if args.by_subject:
-            best_ps = best_hit_by_nident_per_subject(blast_out)
-            n_win = len({w for w, _ in best_ps})
-            print(f"  {n_win}/{len(meta)} windows with >=1 subject hit "
-                  f"({len(best_ps)} window-subject pairs)", file=sys.stderr)
-            n = write_window_table_by_subject(meta, best_ps, args.out)
-            print(f"wrote {n} rows -> {args.out}", file=sys.stderr)
-        else:
-            best = best_hit_by_nident(blast_out)
-            print(
-                f"  {sum(1 for w, *_ in meta if w in best)}/{len(meta)} windows with a hit",
-                file=sys.stderr,
-            )
-            write_window_table(meta, best, args.out)
-            print(f"wrote {args.out}", file=sys.stderr)
-
-        if args.full_out is not None:
-            if args.by_subject:
-                print("note: --full-out with --by-subject uses global best per contig",
-                      file=sys.stderr)
-            full_blast = work / "full.blastn6"
-            print(f"running blastn (full query) -> {full_blast}", file=sys.stderr)
-            run_blastn(
-                args.query.resolve(), db, full_blast,
-                threads=args.threads,
-                max_target_seqs=args.max_target_seqs,
-                max_hsps=args.max_hsps,
-                word_size=args.word_size,
-                evalue=args.evalue,
-            )
-            write_full_summary(query_records, best_hit_by_nident(full_blast), args.full_out)
-            print(f"wrote {args.full_out}", file=sys.stderr)
-    return 0
+        make_db(args.subject, db)
+        if args.window is not None:
+            return run_sliding(args, work, db, word_size, evalue)
+        return run_blocks(args, work, db, word_size, evalue)
 
 
 if __name__ == "__main__":

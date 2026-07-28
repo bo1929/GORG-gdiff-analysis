@@ -11,7 +11,9 @@
 #   REFS=refs.txt          # default: all genomes in contig_dir
 #   JOBS=8 THREADS=4
 #   SENSITIVE=1 FORCE=0
-#   GDIFF=/path/to/gdiff WINDOW=1000 MAX_TARGET_SEQS=5000
+#   GDIFF=/path/to/gdiff WINDOW=1000
+#   BLAST_ARGS="..."       # default: --max-target-seqs 5000
+#   BLAST_WINDOW=1000      # optional: sliding blast (-W) instead of blocks
 #   GDIFF_SKETCH_ARGS=""   # extra args after: gdiff sketch -o <sketch>
 #   GDIFF_MAP_ARGS="..."   # default: -l $((WINDOW/2)) -d <dists>
 set -euo pipefail
@@ -33,7 +35,8 @@ WINDOW="${WINDOW:-1000}"
 GDIFF_BIN="${GDIFF:-$(command -v gdiff || true)}"
 GDIFF_SKETCH_ARGS="${GDIFF_SKETCH_ARGS:-}"
 GDIFF_MAP_ARGS="${GDIFF_MAP_ARGS:--l $((WINDOW / 2)) -d 0.01 0.1 0.25 0.5 0.75 1.0 1.25 1.5}"
-MAX_TARGET_SEQS="${MAX_TARGET_SEQS:-5000}"
+BLAST_ARGS="${BLAST_ARGS:---max-target-seqs 5000}"
+BLAST_WINDOW="${BLAST_WINDOW:-}"
 
 mkdir -p "$OUTDIR"/cache "$OUTDIR"/gdiff "$OUTDIR"/minimap \
   "$OUTDIR"/blast "$OUTDIR"/mummer "$OUTDIR"/manifests
@@ -153,13 +156,16 @@ for q in $QUERIES; do
 
   if have blast; then
     need blastn; need makeblastdb
-    out="$OUTDIR/blast/$q.windows.tsv"
+    out="$OUTDIR/blast/$q.tsv"
     if skip "$out"; then echo "  blast: skip"
     else
       echo "  blast"
-      python3 "$HERE/sliding_blastn.py" -q "$QFA" -s "$REFS_FA" -o "$out" \
-        -W "$WINDOW" -t "$THREADS" --by-subject --max-target-seqs "$MAX_TARGET_SEQS" \
-        --workdir "$OUTDIR/blast/.work_$q"
+      # shellcheck disable=SC2086
+      set -- python3 "$HERE/blastn_blocks.py" -q "$QFA" -s "$REFS_FA" -o "$out" \
+        -t "$THREADS" --workdir "$OUTDIR/blast/.work_$q" $BLAST_ARGS
+      [ "$SENSITIVE" = 1 ] && set -- "$@" --sensitive
+      [ -n "$BLAST_WINDOW" ] && set -- "$@" -W "$BLAST_WINDOW" --by-subject
+      "$@"
     fi
   fi
 

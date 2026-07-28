@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared helpers for sliding_blastn / minimap_blocks / mummer_blocks.
+"""Shared helpers for blastn_blocks / minimap_blocks / mummer_blocks.
 
 Not a config file -- each script keeps its own CONFIG section.
 """
@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator, List, Optional, Sequence, Tuple
 
-# Block TSV schema used by minimap_blocks.py and mummer_blocks.py
+# Block TSV schema used by blastn_blocks / minimap_blocks / mummer_blocks
 BLOCK_HEADER = (
     "q_contig\tq_start\tq_end\tq_strand\t"
     "s_contig\tssag\ts_start\ts_end\ts_strand\t"
