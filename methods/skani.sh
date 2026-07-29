@@ -2,13 +2,14 @@
 # skani ANI for the pairs in <pairs.tsv>, one run per CONFIGS entry.
 # usage: skani.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
 # env: THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
-# writes: <outdir>/skani/{skani-<cfg>.tsv, all_skani.tsv, cache/}
+# writes: <outdir>/distances/{skani-<cfg>.tsv, all_skani.tsv}, cache in <outdir>/cache/skani/
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
 OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
-MDIR="$OUT/skani"
-mkdir -p "$MDIR/cache"; OUT="$(cd "$OUT" && pwd)"; MDIR="$OUT/skani"
+mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
+CACHE="$OUT/cache/skani"; DISTS="$OUT/distances"
+mkdir -p "$CACHE" "$DISTS"
 THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 
 CONFIGS=(
@@ -22,23 +23,23 @@ ONLY="${ONLY:-default}"
 
 want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 
-grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$MDIR/cache/pairs.tsv"
-cut -f1,2 "$MDIR/cache/pairs.tsv" | tr '\t' '\n' | sort -u | while read -r id; do
+grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$CACHE/pairs.tsv"
+cut -f1,2 "$CACHE/pairs.tsv" | tr '\t' '\n' | sort -u | while read -r id; do
   f="$DIR/$id$SUF"; [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }; echo "$f"
-done > "$MDIR/cache/genomes.txt"
+done > "$CACHE/genomes.txt"
 
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
 
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup flags <<< "$c"
   want "$name" || continue
-  tsv="$MDIR/skani-$name.tsv"
+  tsv="$DISTS/skani-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
     echo "$name: skip"; continue
   fi
   echo "$name [$setup]"
   # shellcheck disable=SC2086
-  skani triangle -t "$THREADS" -l "$MDIR/cache/genomes.txt" -E $flags -o "$MDIR/cache/$name.tmp"
+  skani triangle -t "$THREADS" -l "$CACHE/genomes.txt" -E $flags -o "$CACHE/$name.tmp"
   { echo "$HDR"
     awk -v setup="$setup" -v sfx="$SUF" 'BEGIN{FS=OFS="\t"; slen=length(sfx)}
       FNR==NR { P[$1 FS $2]=1; next }
@@ -48,15 +49,15 @@ for c in "${CONFIGS[@]}"; do
         if (substr(b,length(b)-slen+1)==sfx) b=substr(b,1,length(b)-slen)
         if ((a FS b) in P)      print "skani",setup,a,b,$3,$4,$5
         else if ((b FS a) in P) print "skani",setup,b,a,$3,$4,$5
-      }' "$MDIR/cache/pairs.tsv" "$MDIR/cache/$name.tmp"
+      }' "$CACHE/pairs.tsv" "$CACHE/$name.tmp"
   } > "$tsv"
-  rm "$MDIR/cache/$name.tmp"
+  rm "$CACHE/$name.tmp"
 done
 
 { echo "$HDR"
   for c in "${CONFIGS[@]}"; do
     IFS='|' read -r name _ <<< "$c"
-    if want "$name" && [ -s "$MDIR/skani-$name.tsv" ]; then tail -n+2 "$MDIR/skani-$name.tsv"; fi
+    if want "$name" && [ -s "$DISTS/skani-$name.tsv" ]; then tail -n+2 "$DISTS/skani-$name.tsv"; fi
   done
-} > "$MDIR/all_skani.tsv"
-echo "done -> $MDIR"
+} > "$DISTS/all_skani.tsv"
+echo "done -> $DISTS"
