@@ -9,7 +9,7 @@
 # Env (optional):
 #   METHODS=gdiff,minimap,blast,mummer
 #   REFS=refs.txt          # default: all genomes in contig_dir
-#   JOBS=8 THREADS=4
+#   THREADS=16
 #   SENSITIVE=1 FORCE=0
 #   GDIFF=/path/to/gdiff WINDOW=1000
 #   BLAST_ARGS="..."       # default: --max-target-seqs 5000
@@ -26,17 +26,20 @@ CONTIG_DIR="$(cd "$CONTIG_DIR" && pwd)"
 OUTDIR="$(mkdir -p "$OUTDIR" && cd "$OUTDIR" && pwd)"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-METHODS="${METHODS:-gdiff,minimap,blast,mummer}"
-JOBS="${JOBS:-8}"
-THREADS="${THREADS:-4}"
-SENSITIVE="${SENSITIVE:-0}"
+METHODS="${METHODS:-gdiff,minimap,mummer,blast}"
+THREADS="${THREADS:-16}"
+SENSITIVE="${SENSITIVE:-1}"
 FORCE="${FORCE:-0}"
 WINDOW="${WINDOW:-1000}"
-GDIFF_BIN="${GDIFF:-$(command -v gdiff || true)}"
-GDIFF_SKETCH_ARGS="${GDIFF_SKETCH_ARGS:-}"
-GDIFF_MAP_ARGS="${GDIFF_MAP_ARGS:--l $((WINDOW / 2)) -d 0.01 0.1 0.25 0.5 0.75 1.0 1.25 1.5}"
+
+# GDIFF_BIN="${GDIFF:-$(command -v gdiff || true)}"
+GDIFF_BIN="${GDIFF:-../gdiff/gdiff}"
+GDIFF_SKETCH_ARGS="${GDIFF_SKETCH_ARGS:---num-threads ${THREADS} -k 27 -w 35}"
+GDIFF_MAP_ARGS="${GDIFF_MAP_ARGS:---num-threads ${THREADS} -b 4 -l $((WINDOW / 2)) -d 0.01 0.025 0.05 0.075 0.1 0.125 0.15 0.175}"
 BLAST_ARGS="${BLAST_ARGS:---max-target-seqs 5000}"
 BLAST_WINDOW="${BLAST_WINDOW:-}"
+
+SUFFIX="_contigs.fasta"
 
 mkdir -p "$OUTDIR"/cache "$OUTDIR"/gdiff "$OUTDIR"/minimap \
   "$OUTDIR"/blast "$OUTDIR"/mummer "$OUTDIR"/manifests
@@ -47,7 +50,7 @@ skip() { [ "$FORCE" != 1 ] && [ -s "$1" ]; }
 
 fa_for() {
   # SAG id -> contig FASTA path
-  f="$CONTIG_DIR/${1}_contigs.fasta"
+  f="$CONTIG_DIR/${1}${SUFFIX}"
   [ -f "$f" ] || { echo "missing FASTA for $1: $f" >&2; exit 1; }
   printf '%s\n' "$f"
 }
@@ -68,9 +71,9 @@ if [ -n "${REFS:-}" ]; then
   done < "$REFS"
 else
   REFS_LIST=""
-  for f in "$CONTIG_DIR"/*_contigs.fasta; do
+  for f in "$CONTIG_DIR"/*${SUFFIX}; do
     [ -f "$f" ] || continue
-    b=$(basename "$f" _contigs.fasta)
+    b=$(basename "$f" ${SUFFIX})
     REFS_LIST="$REFS_LIST $b"
   done
 fi
@@ -181,11 +184,11 @@ for q in $QUERIES; do
       printf '%s\t%s\t%s\n' "$QFA" "$(fa_for "$r")" "$out" >>"$joblist"
     done
     nj=$(grep -c . "$joblist" 2>/dev/null || echo 0)
-    echo "  mummer: $nj pairs (P=$JOBS)"
+    echo "  mummer: $nj pairs (P=$THREADS)"
     [ "$nj" -eq 0 ] && continue
     export HERE SENSITIVE
     # shellcheck disable=SC2016
-    cat "$joblist" | xargs -P "$JOBS" -n 3 bash -c '
+    cat "$joblist" | xargs -P "$THREADS" -n 3 bash -c '
       qfa="$1"; sfa="$2"; out="$3"
       work="$(dirname "$out")/.work_$(basename "$out" .tsv)"
       set -- python3 "$HERE/mummer_blocks.py" -q "$qfa" -s "$sfa" -o "$out" -t 1 --workdir "$work"
