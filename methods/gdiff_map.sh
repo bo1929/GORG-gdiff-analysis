@@ -2,12 +2,14 @@
 # gdiff map (distance-based intervals) for the pairs in <pairs.tsv>,
 # one run per CONFIGS entry. map args need -l and -d (1 or 8 thresholds).
 # usage: gdiff_map.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default
+# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
+# writes: <outdir>/gdiff-map/{<cfg>/<q>__<s>.tsv, cache/}
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
-OUT="${3:-./gdiff_map_out}"; SUF="${4:-.fasta}"
-mkdir -p "$OUT/cache" "$OUT/mapping"; OUT="$(cd "$OUT" && pwd)"
+OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
+MDIR="$OUT/gdiff-map"
+mkdir -p "$MDIR/cache"; OUT="$(cd "$OUT" && pwd)"; MDIR="$OUT/gdiff-map"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
@@ -23,26 +25,26 @@ ONLY="${ONLY:-default}"
 fa()   { local f="$DIR/$1$SUF"; [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }; echo "$f"; }
 want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 
-grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$OUT/cache/pairs.tsv"
+grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$MDIR/cache/pairs.tsv"
 
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args map_args <<< "$c"
   want "$name" || continue
   echo "$name [$setup]"
-  mkdir -p "$OUT/cache/$name" "$OUT/mapping/$name"
-  cut -f2 "$OUT/cache/pairs.tsv" | sort -u | while read -r s; do
-    sk="$OUT/cache/$name/$s.gdiff"
+  mkdir -p "$MDIR/cache/$name" "$MDIR/$name"
+  cut -f2 "$MDIR/cache/pairs.tsv" | sort -u | while read -r s; do
+    sk="$MDIR/cache/$name/$s.gdiff"
     [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
     # shellcheck disable=SC2086
     "$GDIFF" sketch -o "$sk" --num-threads "$THREADS" $sk_args -i "$(fa "$s")" >/dev/null
   done
   while read -r q s _; do
     [ "$q" = "$s" ] && continue
-    out="$OUT/mapping/$name/${q}__${s}.tsv"
+    out="$MDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
     # shellcheck disable=SC2086
-    "$GDIFF" map -q "$(fa "$q")" -i "$OUT/cache/$name/$s.gdiff" \
+    "$GDIFF" map -q "$(fa "$q")" -i "$MDIR/cache/$name/$s.gdiff" \
       --num-threads "$THREADS" $map_args -o "$out" 2>/dev/null
-  done < "$OUT/cache/pairs.tsv"
+  done < "$MDIR/cache/pairs.tsv"
 done
-echo "done -> $OUT/mapping"
+echo "done -> $MDIR"
