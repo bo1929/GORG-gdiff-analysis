@@ -13,9 +13,10 @@ CONFIGS=(
   "default|c=125,m=1000|-c 125 -m 1000"
   "fast|c=200,m=1000,fast|--fast"
   "slow|c=30,m=1000,slow|--slow"
-  "robust_low_af|c=70,robust,min_af=5|-c 70 --robust --min-af 5"
-  "max_sensitivity|c=30,m=100,robust,min_af=0|-c 30 -m 100 --robust --min-af 0"
+  "sensitive|c=70,robust,min-af=5|-c 70 --robust --min-af 5"
+  "fsensitive|c=30,m=100,robust,min-af=0|-c 30 -m 100 --robust --min-af 0"
 )
+ONLY="${ONLY:-default}"
 
 want() { [ -z "${ONLY:-}" ] || case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 
