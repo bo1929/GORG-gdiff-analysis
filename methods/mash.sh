@@ -11,8 +11,8 @@ THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 
 CONFIGS=(
   "default|k=21,s=1000|-k 21 -s 1000"
-  "sketch10k|k=21,s=10000|-k 21 -s 10000"
-  "k31|k=31,s=10000|-k 31 -s 10000"
+  "large-sketch|k=21,s=10000|-k 21 -s 10000"
+  "long-k|k=31,s=10000|-k 31 -s 10000"
   "sensitive|k=16,s=10000|-k 16 -s 10000"
   "fsensitive|k=16,s=50000|-k 16 -s 50000"
 )
@@ -31,7 +31,7 @@ echo "$HDR" > "$OUT/distances/all_mash.tsv"
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup flags <<< "$c"
   want "$name" || continue
-  tsv="$OUT/distances/$name.tsv"
+  tsv="$OUT/distances/mash-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
     echo "$name: skip"; tail -n+2 "$tsv" >> "$OUT/distances/all_mash.tsv"; continue
   fi

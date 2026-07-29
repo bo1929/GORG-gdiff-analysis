@@ -14,10 +14,10 @@ DIST_COL="${DIST_COL:-13}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
-  "default|k=27,w=35 -l=500|-k 27 -w 35|-l 500"
-  "k29w47|k=29,w=47 -l=500|-k 29 -w 47|-l 500"
-  "len1000|k=27,w=35 -l=1000|-k 27 -w 35|-l 1000"
-  "sensitive|k=27,w=35 -l=500,b=2,n=400|-k 27 -w 35|-l 500 -b 2 --sample-size 400"
+  "default|k=27,w=35,-l=500,n=200|-k 27 -w 35|-l 500 --sample-size 200"
+  "short-k|k=23,w=31,-l=500,n=200|-k 23 -w 47|-l 500 --sample-size 200"
+  "long-window|k=27,w=35,-l=1000,n=200|-k 27 -w 35|-l 1000 --sample-size 200"
+  "fast|k=27,w=43,-l=500,b=2,n=100|-k 27 -w 43|-l 500 -b 2 --sample-size 100"
 )
 ONLY="${ONLY:-default}"
 
@@ -26,14 +26,14 @@ want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; e
 
 grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$OUT/cache/pairs.tsv"
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-echo "$HDR" > "$OUT/distances/all_gdiff_dist.tsv"
+echo "$HDR" > "$OUT/distances/all_gdiff.tsv"
 
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args dist_args <<< "$c"
   want "$name" || continue
-  tsv="$OUT/distances/$name.tsv"
+  tsv="$OUT/distances/gdiff-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
-    echo "$name: skip"; tail -n+2 "$tsv" >> "$OUT/distances/all_gdiff_dist.tsv"; continue
+    echo "$name: skip"; tail -n+2 "$tsv" >> "$OUT/distances/all_gdiff.tsv"; continue
   fi
   echo "$name [$setup]"
   mkdir -p "$OUT/cache/$name" "$OUT/samples/$name"
@@ -57,6 +57,6 @@ for c in "${CONFIGS[@]}"; do
          }' "$OUT/cache/$name/${q}__${s}.summary"
     done < "$OUT/cache/pairs.tsv"
   } > "$tsv"
-  tail -n+2 "$tsv" >> "$OUT/distances/all_gdiff_dist.tsv"
+  tail -n+2 "$tsv" >> "$OUT/distances/all_gdiff.tsv"
 done
 echo "done -> $OUT/distances (samples: $OUT/samples)"

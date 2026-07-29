@@ -31,7 +31,7 @@ echo "$HDR" > "$OUT/distances/all_skani.tsv"
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup flags <<< "$c"
   want "$name" || continue
-  tsv="$OUT/distances/$name.tsv"
+  tsv="$OUT/distances/skani-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
     echo "$name: skip"; tail -n+2 "$tsv" >> "$OUT/distances/all_skani.tsv"; continue
   fi
