@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # blastn block TSVs for the pairs in <pairs.tsv>, one run per CONFIGS entry.
 # Args are passed through to pairwise-mapping/blastn_blocks.py
-# (default is already ultra-sensitive: -word_size 7 -evalue 1000).
 # usage: blast.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
 # env: THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
 # writes: <outdir>/blocks/blast/<cfg>/<q>__<s>.tsv, cache in <outdir>/cache/blast/
@@ -13,14 +12,14 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/blast"; BLOCKS="$OUT/blocks/blast"
 mkdir -p "$CACHE" "$BLOCKS"
-THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+THREADS="${THREADS:-32}"; FORCE="${FORCE:-0}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
 CONFIGS=(
-  "default|w=7,e=1000|"
-  "maxtargets|max-target-seqs=5000|--max-target-seqs 5000"
+  "win300|W=300,by-subject|-W 300 --by-subject"
+  "win1000|W=1000,by-subject|-W 1000 --by-subject"
+  "maxt5000|max-target-seqs=5000|--max-target-seqs 5000"
   "fast|w=11,e=10|--word-size 11 --evalue 10"
-  "window1k|W=1000,by-subject|-W 1000 --by-subject"
 )
 ONLY="${ONLY:-default}"
 
@@ -40,8 +39,12 @@ for c in "${CONFIGS[@]}"; do
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
     # shellcheck disable=SC2086
     python3 "$HERE/../pairwise-mapping/blastn_blocks.py" \
-      -q "$(fa "$q")" -s "$(fa "$s")" -o "$out" -t "$THREADS" \
-      --workdir "$CACHE/.work_${name}_${q}__${s}" $args
+      -q "$(fa "$q")" -s "$(fa "$s")" -o "$out" -t 1 \
+      --workdir "$CACHE/.work_${name}_${q}__${s}" $args &
+    # Optional: Limit concurrency manually (e.g., maximum 4 background jobs)
+    if [[ $(jobs -r -p | wc -l) -ge ${THREADS} ]]; then
+        wait -n # Wait for any single background job to finish before continuing
+    fi
   done < "$CACHE/pairs.tsv"
 done
 echo "done -> $BLOCKS"

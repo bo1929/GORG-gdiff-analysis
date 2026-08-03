@@ -22,6 +22,8 @@ CONFIGS=(
   "default|k=27,w=35,-l=500,n=200|-k 27 -w 35|-l 500 --sample-size 200"
   "short-k|k=23,w=31,-l=500,n=200|-k 23 -w 47|-l 500 --sample-size 200"
   "long-window|k=27,w=35,-l=1000,n=200|-k 27 -w 35|-l 1000 --sample-size 200"
+  "gigantic-window|k=27,w=35,-l=5000,n=300|-k 27 -w 35|-l 5000 --sample-size 300"
+  "full-scale|k=27,w=37,-l=10000,n=500|-k 27 -w 37|-l 10000 --sample-size 500"
   "fast|k=27,w=43,-l=500,b=2,n=100|-k 27 -w 43|-l 500 -b 2 --sample-size 100"
 )
 ONLY="${ONLY:-default}"

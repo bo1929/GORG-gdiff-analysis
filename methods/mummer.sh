@@ -17,9 +17,9 @@ command -v nucmer >/dev/null || { echo "missing: nucmer" >&2; exit 1; }
 
 CONFIGS=(
   "default|delta-filter -1|"
-  "sensitive|maxmatch,c=25,b=500,g=200,l=15|--sensitive"
   "maxmatch|maxmatch,c=25,l=15|--maxmatch -c 25 -l 15"
-  "minid85|sensitive,min-id=85|--sensitive --min-identity 85"
+  "sensitive|maxmatch,c=25,b=500,g=200,l=15|--sensitive"
+  "sensitive-min85|sensitive,min-id=85|--sensitive --min-identity 85"
 )
 ONLY="${ONLY:-default}"
 

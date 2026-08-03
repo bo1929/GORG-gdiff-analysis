@@ -14,12 +14,12 @@ mkdir -p "$CACHE" "$MAPS"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
-DISTS="0.01 0.025 0.05 0.075 0.1 0.125 0.15 0.175"
+DISTS="0.0001 0.01 0.025 0.05 0.075 0.1 0.15 0.20"
 CONFIGS=(
-  "default|k=27,w=35 -l=500|-k 27 -w 35|-l 500 -d $DISTS"
-  "k29w47|k=29,w=47 -l=500|-k 29 -w 47|-l 500 -d $DISTS"
-  "len1000|k=27,w=35 -l=1000|-k 27 -w 35|-l 1000 -d $DISTS"
-  "bin4|k=27,w=35 -b=4,l=500|-k 27 -w 35|-b 4 -l 500 -d $DISTS"
+  "default|k=27,w=35,-l=500|-k 27 -w 35|-l 500 -d $DISTS"
+  "short-win|k=27,w=33,-l=50|-k 27 -w 35|-l 50 -d $DISTS"
+  "medium-win|k=27,w=33,-l=200|-k 27 -w 35|-l 200 -d $DISTS"
+  "fast|k=27,w=45,-b=4,l=500|-k 27 -w 45|-b 4 -l 500 -d $DISTS"
 )
 ONLY="${ONLY:-default}"
 

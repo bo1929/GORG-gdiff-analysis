@@ -26,7 +26,7 @@ import align_util as u
 # CONFIG
 # =============================================================================
 
-DEFAULT_THREADS = 8
+DEFAULT_THREADS = 2
 DEFAULT_MIN_ALN_LEN = 0
 DEFAULT_MIN_IDENTITY = 0.0
 
@@ -41,7 +41,7 @@ BLAST_OUTFMT = (
 )
 
 SENSITIVE_PRESET = {
-    "word_size": 7,  # smaller = more sensitive (NCBI default is 11)
+    "word_size": 9,  # smaller = more sensitive (NCBI default is 11)
     "evalue": "1000",
 }
 
