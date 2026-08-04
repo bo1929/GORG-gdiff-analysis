@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # gdiff dist ANI for the pairs in <pairs.tsv>, one run per CONFIGS entry.
-# ANI = DIST_COL of the dist summary (13 = CAPPED_MEDIAN, median of windows
-# with >=1 matching k-mer; 4 = raw mean). SAMPLES=1 also writes per-pair
-# sampled regions via --samples-output.
+# ANI = DIST_COL of the 12-col dist summary (4 = mean, 9 = Q50 median).
+# SAMPLES=1 also writes per-pair sampled regions via --samples-output.
 # usage: gdiff_dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=13 SAMPLES=0
+# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=9 SAMPLES=0
 # writes: <outdir>/distances/{gdiff-<cfg>.tsv, all_gdiff.tsv},
 #         <outdir>/samples/<cfg>/ (SAMPLES=1), cache in <outdir>/cache/gdiff-dist/
 set -euo pipefail
@@ -15,7 +14,7 @@ mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-dist"; DISTS="$OUT/distances"
 mkdir -p "$CACHE" "$DISTS"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
-DIST_COL="${DIST_COL:-13}"; SAMPLES="${SAMPLES:-0}"
+DIST_COL="${DIST_COL:-9}"; SAMPLES="${SAMPLES:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
