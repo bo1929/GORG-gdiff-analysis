@@ -10,7 +10,7 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/mash"; OUTDIR="$OUT/distances"
 mkdir -p "$CACHE" "$OUTDIR"
-THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+THREADS="${THREADS:-16}"; FORCE="${FORCE:-0}"
 
 CONFIGS=(
   "default|k=21,s=1000|-k 21 -s 1000"
@@ -19,7 +19,7 @@ CONFIGS=(
   "sensitive|k=16,s=10000|-k 16 -s 10000"
   "fsensitive|k=16,s=50000|-k 16 -s 50000"
 )
-ONLY="${ONLY:-default}"
+ONLY="${ONLY:-all}"
 
 want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 

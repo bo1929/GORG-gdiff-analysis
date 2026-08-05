@@ -3,14 +3,14 @@
 # ANI = DIST_COL of the 12-col dist summary (4 = mean, 9 = Q50 median).
 # SAMPLES=1 also writes per-pair sampled regions via --samples-output and
 # concatenates them (prefixed with config + pair info) into
-# <outdir>/samples/all_<cfg>.tsv and <outdir>/samples/all_samples.tsv.
+# <outdir>/gdiff-samples/all_<cfg>.tsv and <outdir>/gdiff-samples/all_samples.tsv.
 # Concatenated columns: config, genome_a, genome_b, then the raw dist sample
 # row (query_id, seq_len, start, end, strand, ref_id, dist, info, lr_bg,
 # lr_ub); dist is NaN for unmapped windows (no k-mer hits).
 # usage: gdiff_dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
 # env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=9 SAMPLES=0
 # writes: <outdir>/distances/{gdiff-<cfg>.tsv, all_gdiff.tsv},
-#         <outdir>/samples/<cfg>/ + all_<cfg>.tsv + all_samples.tsv (SAMPLES=1),
+#         <outdir>/gdiff-samples/<cfg>/ + all_<cfg>.tsv + all_samples.tsv (SAMPLES=1),
 #         cache in <outdir>/cache/gdiff-dist/
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
@@ -20,7 +20,7 @@ mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-dist"; OUTDIR="$OUT/distances"
 mkdir -p "$CACHE" "$OUTDIR"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
-DIST_COL="${DIST_COL:-9}"; SAMPLES="${SAMPLES:-0}"
+DIST_COL="${DIST_COL:-9}"; SAMPLES="${SAMPLES:-1}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
@@ -49,9 +49,9 @@ for c in "${CONFIGS[@]}"; do
   fi
   echo "$name [$setup]"
   mkdir -p "$CACHE/$name"
-  concat="$OUT/samples/all_$name.tsv"
+  concat="$OUT/gdiff-samples/all_$name.tsv"
   if [ "$SAMPLES" = 1 ]; then
-    mkdir -p "$OUT/samples/$name"
+    mkdir -p "$OUT/gdiff-samples/$name"
     echo "$SAMPLES_HDR" > "$concat"
   fi
   cut -f2 "$CACHE/pairs.tsv" | sort -u | while read -r s; do
@@ -64,7 +64,7 @@ for c in "${CONFIGS[@]}"; do
     while read -r q s _; do
       [ "$q" = "$s" ] && continue
       sum="$CACHE/$name/${q}__${s}.summary"
-      samples_tsv="$OUT/samples/$name/${q}__${s}.tsv"
+      samples_tsv="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
       # shellcheck disable=SC2086
       set -- "$GDIFF" dist -q "$(fa "$q")" -i "$CACHE/$name/$s.gdiff" \
         --num-threads "$THREADS" $dist_args -o "$sum"
@@ -93,10 +93,10 @@ if [ "$SAMPLES" = 1 ]; then
   { echo "$SAMPLES_HDR"
     for c in "${CONFIGS[@]}"; do
       IFS='|' read -r name _ <<< "$c"
-      if want "$name" && [ -s "$OUT/samples/all_$name.tsv" ]; then tail -n+2 "$OUT/samples/all_$name.tsv"; fi
+      if want "$name" && [ -s "$OUT/gdiff-samples/all_$name.tsv" ]; then tail -n+2 "$OUT/gdiff-samples/all_$name.tsv"; fi
     done
-  } > "$OUT/samples/all_samples.tsv"
-  echo "done -> $OUTDIR and $OUT/samples"
+  } > "$OUT/gdiff-samples/all_samples.tsv"
+  echo "done -> $OUTDIR and $OUT/gdiff-samples"
 else
   echo "done -> $OUTDIR"
 fi

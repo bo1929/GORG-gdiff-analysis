@@ -10,7 +10,7 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/skani"; DISTS="$OUT/distances"
 mkdir -p "$CACHE" "$DISTS"
-THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+THREADS="${THREADS:-16}"; FORCE="${FORCE:-0}"
 
 CONFIGS=(
   "default|c=125,m=1000|-c 125 -m 1000"
@@ -19,7 +19,7 @@ CONFIGS=(
   "sensitive|c=70,robust,min-af=5|-c 70 --robust --min-af 5"
   "fsensitive|c=30,m=100,robust,min-af=0|-c 30 -m 100 --robust --min-af 0"
 )
-ONLY="${ONLY:-default}"
+ONLY="${ONLY:-all}"
 
 want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 
