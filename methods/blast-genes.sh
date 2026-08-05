@@ -4,8 +4,10 @@
 # CONFIGS entry. Args are passed through to blastn_from_gbk.py.
 # usage: blast-genes.sh <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suffix] [fasta_suffix]
 #   gbk_suffix=.gbk  fasta_suffix=_contigs.fasta
-# env: THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
-# writes: <outdir>/blocks/blast-genes/<cfg>/<q>__<s>.tsv,
+# env: THREADS=32 FORCE=0 ONLY=default (name(s), or "all")
+#   Pairs run in parallel as background jobs (up to THREADS at a time,
+#   one blast thread each).
+# writes: <outdir>/blast-gene-blocks/<cfg>/<q>__<s>.tsv,
 #         cache in <outdir>/cache/blast-genes/
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -14,9 +16,9 @@ FA_DIR="$(cd "${2:?usage: $0 <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suf
 PAIRS="${3:?usage: $0 <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suffix] [fasta_suffix]}"
 OUT="${4:-./methods_out}"; SUF="${5:-.gbk}"; FA_SUF="${6:-_contigs.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/blast-genes"; BLOCKS="$OUT/blocks/blast-genes"
-mkdir -p "$CACHE" "$BLOCKS"
-THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+CACHE="$OUT/cache/blast-genes"; OUTDIR="$OUT/blast-gene-blocks"
+mkdir -p "$CACHE" "$OUTDIR"
+THREADS="${THREADS:-32}"; FORCE="${FORCE:-0}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
 CONFIGS=(
@@ -35,15 +37,20 @@ for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup args <<< "$c"
   want "$name" || continue
   echo "$name [$setup]"
-  mkdir -p "$BLOCKS/$name"
+  mkdir -p "$OUTDIR/$name"
   while read -r q s _; do
     [ "$q" = "$s" ] && continue
-    out="$BLOCKS/$name/${q}__${s}.tsv"
+    out="$OUTDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
     # shellcheck disable=SC2086
     python3 "$HERE/../blastn_from_gbk.py" \
-      -g "$(gbk_for "$q")" -s "$(fa_for "$s")" -o "$out" -t "$THREADS" \
-      --workdir "$CACHE/.work_${name}_${q}__${s}" $args
+      -g "$(gbk_for "$q")" -s "$(fa_for "$s")" -o "$out" -t 1 \
+      --workdir "$CACHE/.work_${name}_${q}__${s}" $args &
+    # Limit concurrency: at most THREADS background jobs at a time
+    if [[ $(jobs -r -p | wc -l) -ge ${THREADS} ]]; then
+        wait -n
+    fi
   done < "$CACHE/pairs.tsv"
+  wait
 done
-echo "done -> $BLOCKS"
+echo "done -> $OUTDIR"
