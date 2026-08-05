@@ -8,8 +8,8 @@ DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
 OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/mash"; DISTS="$OUT/distances"
-mkdir -p "$CACHE" "$DISTS"
+CACHE="$OUT/cache/mash"; OUTDIR="$OUT/distances"
+mkdir -p "$CACHE" "$OUTDIR"
 THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 
 CONFIGS=(
@@ -33,7 +33,7 @@ HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tp_value\tshared_hashes\
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup flags <<< "$c"
   want "$name" || continue
-  tsv="$DISTS/mash-$name.tsv"
+  tsv="$OUTDIR/mash-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
     echo "$name: skip"; continue
   fi
@@ -59,7 +59,7 @@ done
 { echo "$HDR"
   for c in "${CONFIGS[@]}"; do
     IFS='|' read -r name _ <<< "$c"
-    if want "$name" && [ -s "$DISTS/mash-$name.tsv" ]; then tail -n+2 "$DISTS/mash-$name.tsv"; fi
+    if want "$name" && [ -s "$OUTDIR/mash-$name.tsv" ]; then tail -n+2 "$OUTDIR/mash-$name.tsv"; fi
   done
-} > "$DISTS/all_mash.tsv"
-echo "done -> $DISTS"
+} > "$OUTDIR/all_mash.tsv"
+echo "done -> $OUTDIR"

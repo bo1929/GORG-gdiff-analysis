@@ -9,8 +9,8 @@ DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
 OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/gdiff-map"; MAPS="$OUT/mapping"
-mkdir -p "$CACHE" "$MAPS"
+CACHE="$OUT/cache/gdiff-map"; OUTDIR="$OUT/gdiff-map"
+mkdir -p "$CACHE" "$OUTDIR"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
@@ -32,7 +32,7 @@ for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args map_args <<< "$c"
   want "$name" || continue
   echo "$name [$setup]"
-  mkdir -p "$CACHE/$name" "$MAPS/$name"
+  mkdir -p "$CACHE/$name" "$OUTDIR/$name"
   cut -f2 "$CACHE/pairs.tsv" | sort -u | while read -r s; do
     sk="$CACHE/$name/$s.gdiff"
     [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
@@ -41,11 +41,11 @@ for c in "${CONFIGS[@]}"; do
   done
   while read -r q s _; do
     [ "$q" = "$s" ] && continue
-    out="$MAPS/$name/${q}__${s}.tsv"
+    out="$OUTDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
     # shellcheck disable=SC2086
     "$GDIFF" map -q "$(fa "$q")" -i "$CACHE/$name/$s.gdiff" \
       --num-threads "$THREADS" $map_args -o "$out" 2>/dev/null
   done < "$CACHE/pairs.tsv"
 done
-echo "done -> $MAPS"
+echo "done -> $OUTDIR"

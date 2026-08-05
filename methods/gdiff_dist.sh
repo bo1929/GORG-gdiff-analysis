@@ -11,8 +11,8 @@ DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
 OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/gdiff-dist"; DISTS="$OUT/distances"
-mkdir -p "$CACHE" "$DISTS"
+CACHE="$OUT/cache/gdiff-dist"; OUTDIR="$OUT/distances"
+mkdir -p "$CACHE" "$OUTDIR"
 GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 DIST_COL="${DIST_COL:-9}"; SAMPLES="${SAMPLES:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
@@ -25,7 +25,7 @@ CONFIGS=(
   "full-scale|k=27,w=37,-l=10000,n=500|-k 27 -w 37|-l 10000 --sample-size 500"
   "fast|k=27,w=43,-l=500,b=2,n=100|-k 27 -w 43|-l 500 -b 2 --sample-size 100"
 )
-ONLY="${ONLY:-default}"
+ONLY="${ONLY:-all}"
 
 fa()   { local f="$DIR/$1$SUF"; [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }; echo "$f"; }
 want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
@@ -36,7 +36,7 @@ HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args dist_args <<< "$c"
   want "$name" || continue
-  tsv="$DISTS/gdiff-$name.tsv"
+  tsv="$OUTDIR/gdiff-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then
     echo "$name: skip"; continue
   fi
@@ -69,7 +69,7 @@ done
 { echo "$HDR"
   for c in "${CONFIGS[@]}"; do
     IFS='|' read -r name _ <<< "$c"
-    if want "$name" && [ -s "$DISTS/gdiff-$name.tsv" ]; then tail -n+2 "$DISTS/gdiff-$name.tsv"; fi
+    if want "$name" && [ -s "$OUTDIR/gdiff-$name.tsv" ]; then tail -n+2 "$OUTDIR/gdiff-$name.tsv"; fi
   done
-} > "$DISTS/all_gdiff.tsv"
-echo "done -> $DISTS"
+} > "$OUTDIR/all_gdiff.tsv"
+echo "done -> $OUTDIR"

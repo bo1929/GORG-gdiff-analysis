@@ -10,8 +10,8 @@ DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
 OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/blast"; BLOCKS="$OUT/blocks/blast"
-mkdir -p "$CACHE" "$BLOCKS"
+CACHE="$OUT/cache/blast"; OUTDIR="$OUT/blast-blocks"
+mkdir -p "$CACHE" "$OUTDIR"
 THREADS="${THREADS:-32}"; FORCE="${FORCE:-0}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
@@ -32,10 +32,10 @@ for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup args <<< "$c"
   want "$name" || continue
   echo "$name [$setup]"
-  mkdir -p "$BLOCKS/$name"
+  mkdir -p "$OUTDIR/$name"
   while read -r q s _; do
     [ "$q" = "$s" ] && continue
-    out="$BLOCKS/$name/${q}__${s}.tsv"
+    out="$OUTDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
     # shellcheck disable=SC2086
     python3 "$HERE/../pairwise-mapping/blastn_blocks.py" \
@@ -47,4 +47,4 @@ for c in "${CONFIGS[@]}"; do
     fi
   done < "$CACHE/pairs.tsv"
 done
-echo "done -> $BLOCKS"
+echo "done -> $OUTDIR"
