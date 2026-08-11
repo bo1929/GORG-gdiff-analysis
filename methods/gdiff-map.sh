@@ -2,7 +2,7 @@
 # gdiff map (distance-based intervals) for the pairs in <pairs.tsv>,
 # one run per CONFIGS entry. map args need -l and -d (1 or 8 thresholds).
 # usage: gdiff_map.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
+# env: GDIFF=../gidiff/gdiff THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
 # writes: <outdir>/mapping/<cfg>/<q>__<s>.tsv, cache in <outdir>/cache/gdiff-map/
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
@@ -11,7 +11,7 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-map"; OUTDIR="$OUT/gdiff-map"
 mkdir -p "$CACHE" "$OUTDIR"
-GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+GDIFF="${GDIFF:-../gidiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 DISTS="0.0001 0.01 0.025 0.05 0.075 0.1 0.15 0.20"
@@ -37,15 +37,16 @@ for c in "${CONFIGS[@]}"; do
     sk="$CACHE/$name/$s.gdiff"
     [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
     # shellcheck disable=SC2086
-    "$GDIFF" sketch -o "$sk" --num-threads "$THREADS" $sk_args -i "$(fa "$s")" >/dev/null
+    "$GDIFF" --num-threads "$THREADS" sketch -o "$sk" $sk_args -i "$(fa "$s")" >/dev/null
   done
   while read -r q s _; do
     [ "$q" = "$s" ] && continue
     out="$OUTDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
+    # new CLI: target FASTA and sketch are positional; --num-threads is global
     # shellcheck disable=SC2086
-    "$GDIFF" map -q "$(fa "$q")" -i "$CACHE/$name/$s.gdiff" \
-      --num-threads "$THREADS" $map_args -o "$out" 2>/dev/null
+    "$GDIFF" --num-threads "$THREADS" map "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
+      $map_args -o "$out" 2>/dev/null
   done < "$CACHE/pairs.tsv"
 done
 echo "done -> $OUTDIR"

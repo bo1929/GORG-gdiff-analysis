@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 # gdiff dist ANI for the pairs in <pairs.tsv>, one run per CONFIGS entry.
-# ANI = DIST_COL of the 12-col dist summary (4 = mean, 9 = Q50 median).
-# SAMPLES=1 also writes per-pair sampled regions via --samples-output and
-# concatenates them (prefixed with config + pair info) into
-# <outdir>/gdiff-samples/all_<cfg>.tsv and <outdir>/gdiff-samples/all_samples.tsv.
+# ANI = DIST_COL of the 6-col dist summary
+# (query_file, reference, N, D_MED, D_MED_FILT, N_REMOVED):
+# 4 = D_MED (median MLE distance), 5 = D_MED_FILT (median after outlier
+# removal). The new CLI has no mean column; D_MED replaces the old Q50.
+# SAMPLES=1 additionally runs dist --output-samples (a separate run; sampling
+# is seeded and therefore identical) and concatenates the per-window rows
+# (prefixed with config + pair info) into <outdir>/gdiff-samples/all_<cfg>.tsv
+# and <outdir>/gdiff-samples/all_samples.tsv.
 # Concatenated columns: config, genome_a, genome_b, then the raw dist sample
-# row (query_id, seq_len, start, end, strand, ref_id, dist, info, lr_bg,
-# lr_ub); dist is NaN for unmapped windows (no k-mer hits).
+# row (qid, start, end, strand, reference, d, lr_bg); d is NaN for unmapped
+# windows (no k-mer hits).
 # usage: gdiff_dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=9 SAMPLES=0
+# env: GDIFF=../gidiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=4 SAMPLES=0
 # writes: <outdir>/distances/{gdiff-<cfg>.tsv, all_gdiff.tsv},
 #         <outdir>/gdiff-samples/<cfg>/ + all_<cfg>.tsv + all_samples.tsv (SAMPLES=1),
 #         cache in <outdir>/cache/gdiff-dist/
@@ -19,8 +23,8 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-dist"; OUTDIR="$OUT/distances"
 mkdir -p "$CACHE" "$OUTDIR"
-GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
-DIST_COL="${DIST_COL:-9}"; SAMPLES="${SAMPLES:-1}"
+GDIFF="${GDIFF:-../gidiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+DIST_COL="${DIST_COL:-4}"; SAMPLES="${SAMPLES:-1}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
@@ -38,7 +42,7 @@ want() { [ "$ONLY" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; e
 
 grep -v '^#' "$PAIRS" | awk 'NF>=2' > "$CACHE/pairs.tsv"
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-SAMPLES_HDR=$'config\tgenome_a\tgenome_b\tquery_id\tseq_len\tstart\tend\tstrand\tref_id\tdist\tinfo\tlr_bg\tlr_ub'
+SAMPLES_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg'
 
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args dist_args <<< "$c"
@@ -58,18 +62,25 @@ for c in "${CONFIGS[@]}"; do
     sk="$CACHE/$name/$s.gdiff"
     [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
     # shellcheck disable=SC2086
-    "$GDIFF" sketch -o "$sk" --num-threads "$THREADS" $sk_args -i "$(fa "$s")" >/dev/null
+    "$GDIFF" --num-threads "$THREADS" sketch -o "$sk" $sk_args -i "$(fa "$s")" >/dev/null
   done
   { echo "$HDR"
     while read -r q s _; do
       [ "$q" = "$s" ] && continue
       sum="$CACHE/$name/${q}__${s}.summary"
       samples_tsv="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
+      # new CLI: target FASTA and sketch are positional; --num-threads is a
+      # global option placed before the subcommand
       # shellcheck disable=SC2086
-      set -- "$GDIFF" dist -q "$(fa "$q")" -i "$CACHE/$name/$s.gdiff" \
-        --num-threads "$THREADS" $dist_args -o "$sum"
-      [ "$SAMPLES" = 1 ] && set -- "$@" --samples-output "$samples_tsv"
-      "$@" 2>/dev/null
+      "$GDIFF" --num-threads "$THREADS" dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
+        $dist_args -o "$sum" 2>/dev/null
+      if [ "$SAMPLES" = 1 ]; then
+        # --output-samples changes the -o payload to per-window rows, so the
+        # samples need a second run (seeded sampling => identical windows)
+        # shellcheck disable=SC2086
+        "$GDIFF" --num-threads "$THREADS" dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
+          $dist_args --output-samples -o "$samples_tsv" 2>/dev/null
+      fi
       awk -v q="$q" -v s="$s" -v setup="$setup" -v col="$DIST_COL" \
         'NF>=col && $col~/^[0-9.]/ {
            printf "gdiff_dist\t%s\t%s\t%s\t%s\t%.6f\n",setup,q,s,$col,(1-$col)*100; exit
