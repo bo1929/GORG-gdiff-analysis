@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # gdiff dist ANI for the pairs in <pairs.tsv>, one run per CONFIGS entry.
+# Distance is SYMMETRIC: dist is run both A->B and B->A; the reported value
+# is the average of the two directional D_MED estimates.
 # ANI = DIST_COL of the 6-col dist summary
 # (query_file, reference, N, D_MED, D_MED_FILT, N_REMOVED):
 # 4 = D_MED (median MLE distance), 5 = D_MED_FILT (median after outlier
@@ -58,7 +60,8 @@ for c in "${CONFIGS[@]}"; do
     mkdir -p "$OUT/gdiff-samples/$name"
     echo "$SAMPLES_HDR" > "$concat"
   fi
-  cut -f2 "$CACHE/pairs.tsv" | sort -u | while read -r s; do
+  # sketch all genomes that appear in either column (needed for both directions)
+  { cut -f1 "$CACHE/pairs.tsv"; cut -f2 "$CACHE/pairs.tsv"; } | sort -u | while read -r s; do
     sk="$CACHE/$name/$s.gdiff"
     [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
     # shellcheck disable=SC2086
@@ -67,27 +70,58 @@ for c in "${CONFIGS[@]}"; do
   { echo "$HDR"
     while read -r q s _; do
       [ "$q" = "$s" ] && continue
-      sum="$CACHE/$name/${q}__${s}.summary"
-      samples_tsv="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
-      # new CLI: target FASTA and sketch are positional; --num-threads is a
-      # global option placed before the subcommand
+      sum_fwd="$CACHE/$name/${q}__${s}.summary"
+      sum_rev="$CACHE/$name/${s}__${q}.summary"
+      samples_fwd="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
+      samples_rev="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
+      # forward: q -> s
       # shellcheck disable=SC2086
       "$GDIFF" --num-threads "$THREADS" dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-        $dist_args -o "$sum" 2>/dev/null
+        $dist_args -o "$sum_fwd" 2>/dev/null
+      # reverse: s -> q
+      # shellcheck disable=SC2086
+      "$GDIFF" --num-threads "$THREADS" dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
+        $dist_args -o "$sum_rev" 2>/dev/null
       if [ "$SAMPLES" = 1 ]; then
-        # --output-samples changes the -o payload to per-window rows, so the
-        # samples need a second run (seeded sampling => identical windows)
+        # --output-samples changes the -o payload to per-window rows; seeded
+        # sampling => identical windows to the summary run
         # shellcheck disable=SC2086
         "$GDIFF" --num-threads "$THREADS" dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-          $dist_args --output-samples -o "$samples_tsv" 2>/dev/null
+          $dist_args --output-samples -o "$samples_fwd" 2>/dev/null
+        # shellcheck disable=SC2086
+        "$GDIFF" --num-threads "$THREADS" dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
+          $dist_args --output-samples -o "$samples_rev" 2>/dev/null
       fi
+      # average the two directional distances; emit a single symmetric row
       awk -v q="$q" -v s="$s" -v setup="$setup" -v col="$DIST_COL" \
-        'NF>=col && $col~/^[0-9.]/ {
-           printf "gdiff_dist\t%s\t%s\t%s\t%s\t%.6f\n",setup,q,s,$col,(1-$col)*100; exit
-         }' "$sum"
-      if [ "$SAMPLES" = 1 ] && [ -s "$samples_tsv" ]; then
-        awk -v name="$name" -v q="$q" -v s="$s" \
-          'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$samples_tsv" >> "$concat"
+          -v fwd="$sum_fwd" -v rev="$sum_rev" '
+        BEGIN {
+          d_fwd = ""; d_rev = ""
+          while ((getline line < fwd) > 0) {
+            n = split(line, a, "\t")
+            if (n >= col && a[col] ~ /^[0-9.]/) { d_fwd = a[col]+0; break }
+          }
+          close(fwd)
+          while ((getline line < rev) > 0) {
+            n = split(line, a, "\t")
+            if (n >= col && a[col] ~ /^[0-9.]/) { d_rev = a[col]+0; break }
+          }
+          close(rev)
+          if (d_fwd == "" && d_rev == "") exit
+          if (d_fwd == "") d = d_rev
+          else if (d_rev == "") d = d_fwd
+          else d = (d_fwd + d_rev) / 2
+          printf "gdiff_dist\t%s\t%s\t%s\t%.9f\t%.6f\n", setup, q, s, d, (1-d)*100
+        }' /dev/null
+      if [ "$SAMPLES" = 1 ]; then
+        if [ -s "$samples_fwd" ]; then
+          awk -v name="$name" -v q="$q" -v s="$s" \
+            'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$samples_fwd" >> "$concat"
+        fi
+        if [ -s "$samples_rev" ]; then
+          awk -v name="$name" -v q="$s" -v s="$q" \
+            'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$samples_rev" >> "$concat"
+        fi
       fi
     done < "$CACHE/pairs.tsv"
   } > "$tsv"
