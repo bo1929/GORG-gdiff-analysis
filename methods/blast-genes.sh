@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gene-level blastn blocks for the pairs in <pairs.tsv>: all annotated genes
+# Gene-level blastn for the pairs in <pairs.tsv>: all annotated genes
 # of each query (GBK) mapped against the subject genome FASTA, one run per
 # CONFIGS entry. Args are passed through to blastn_from_gbk.py.
 # usage: blast-genes.sh <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suffix] [fasta_suffix]
@@ -7,7 +7,7 @@
 # env: THREADS=32 FORCE=0 ONLY=default (name(s), or "all")
 #   Pairs run in parallel as background jobs (up to THREADS at a time,
 #   one blast thread each).
-# writes: <outdir>/blast-gene-blocks/<cfg>/<q>__<s>.tsv,
+# writes: <outdir>/blast-genes/<cfg>/<q>__<s>.tsv,
 #         cache in <outdir>/cache/blast-genes/
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -16,7 +16,7 @@ FA_DIR="$(cd "${2:?usage: $0 <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suf
 PAIRS="${3:?usage: $0 <gbk_dir> <fasta_dir> <pairs.tsv> [outdir] [gbk_suffix] [fasta_suffix]}"
 OUT="${4:-./methods_out}"; SUF="${5:-.gbk}"; FA_SUF="${6:-_contigs.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/blast-genes"; OUTDIR="$OUT/blast-gene-blocks"
+CACHE="$OUT/cache/blast-genes"; OUTDIR="$OUT/blast-genes"
 mkdir -p "$CACHE" "$OUTDIR"
 THREADS="${THREADS:-32}"; FORCE="${FORCE:-0}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }

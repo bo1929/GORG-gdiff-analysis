@@ -14,7 +14,7 @@
 # row (qid, start, end, strand, reference, d, lr_bg); d is NaN for unmapped
 # windows (no k-mer hits).
 # usage: gdiff_dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gidiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=4 SAMPLES=0
+# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default DIST_COL=4 SAMPLES=0
 # writes: <outdir>/distances/{gdiff-<cfg>.tsv, all_gdiff.tsv},
 #         <outdir>/gdiff-samples/<cfg>/ + all_<cfg>.tsv + all_samples.tsv (SAMPLES=1),
 #         cache in <outdir>/cache/gdiff-dist/
@@ -25,7 +25,7 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-dist"; OUTDIR="$OUT/distances"
 mkdir -p "$CACHE" "$OUTDIR"
-GDIFF="${GDIFF:-../gidiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 DIST_COL="${DIST_COL:-4}"; SAMPLES="${SAMPLES:-1}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 

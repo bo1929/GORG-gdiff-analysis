@@ -2,7 +2,7 @@
 # gdiff detect (two-sided outlier regions) for the pairs in <pairs.tsv>,
 # one run per CONFIGS entry. detect args need -l (k-mer window / min length).
 # usage: gdiff_detect.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gidiff/gdiff THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
+# env: GDIFF=../gdiff/gdiff THREADS=8 FORCE=0 ONLY=default (name(s), or "all")
 # writes: <outdir>/detect/<cfg>/<q>__<s>.tsv, cache in <outdir>/cache/gdiff-detect/
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
@@ -11,12 +11,12 @@ OUT="${3:-./methods_out}"; SUF="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-detect"; OUTDIR="$OUT/gdiff-detect"
 mkdir -p "$CACHE" "$OUTDIR"
-GDIFF="${GDIFF:-../gidiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
+GDIFF="${GDIFF:-../gdiff/gdiff}"; THREADS="${THREADS:-8}"; FORCE="${FORCE:-0}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
   "k27w35l500|k=27,w=35,-l=500|-k 27 -w 35|-l 500"
-  "k29w47l500|k=29,w=47,-l=500|-k 29 -w 47|-l 500"
+  "k25w47l500|k=25,w=47,-l=500|-k 25 -w 41|-l 500"
   "k27w35l1000|k=27,w=35,-l=1000|-k 27 -w 35|-l 1000"
   "k27w35l500-pq|k=27,w=35,-l=500,per-sequence|-k 27 -w 35|-l 500 --per-sequence"
 )
@@ -42,14 +42,10 @@ for c in "${CONFIGS[@]}"; do
     [ "$q" = "$s" ] && continue
     out="$OUTDIR/$name/${q}__${s}.tsv"
     [ "$FORCE" != 1 ] && [ -s "$out" ] && continue
-    # new CLI: target FASTA and sketch are positional; --num-threads is global.
-    # Pooled detect hard-fails ("no usable confidence levels") on pairs where
-    # every level is dropped by the median-distinguishability screen (typical
-    # for very distant pairs); log and continue instead of aborting the run.
-    # shellcheck disable=SC2086
     "$GDIFF" --num-threads "$THREADS" detect "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-      $det_args -o "$out" 2>/dev/null \
-      || echo "  detect failed: $q vs $s (skipped)" >&2
+      $det_args -o "$out" || echo "  detect failed: $q vs $s (skipped)" >&2
+          # 2>/dev/null \
+      
   done < "$CACHE/pairs.tsv"
 done
 echo "done -> $OUTDIR"
