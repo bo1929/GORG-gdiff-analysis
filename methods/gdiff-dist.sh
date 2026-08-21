@@ -78,13 +78,13 @@ fi
 
 # Parse /usr/bin/time logs under $1; print avg wall (and user/sys).
 # $2 = unit label (e.g. genome, pair).
+# Stream files one-by-one (no glob / batched argv) to avoid ARG_MAX.
 summarize_times() {
-  local tdir="$1" unit="${2:-item}"
+  local tdir="$1" unit="${2:-item}" awk_prog
   [ -d "$tdir" ] || return 0
-  # shellcheck disable=SC2012
-  [ "$(ls -A "$tdir" 2>/dev/null | wc -l | tr -d ' ')" -gt 0 ] || return 0
+  find "$tdir" -type f -name '*.time' -print -quit | grep -q . || return 0
   if [ "$TIME_STYLE" = v ]; then
-    awk -v unit="$unit" '
+    awk_prog='
       /Elapsed \(wall clock\) time/ {
         t = $NF
         n = split(t, a, ":")
@@ -101,10 +101,9 @@ summarize_times() {
         if (nu == nw) printf ", user %.3fs", user/nu
         if (ns == nw) printf ", sys %.3fs", sys/ns
         printf "  (%d %ss, /usr/bin/time -v)\n", nw, unit
-      }
-    ' "$tdir"/*.time >&2
+      }'
   else
-    awk -v unit="$unit" '
+    awk_prog='
       /^real / { wall += $2; nw++ }
       /^user / { user += $2; nu++ }
       /^sys /  { sys  += $2; ns++ }
@@ -114,9 +113,13 @@ summarize_times() {
         if (nu == nw) printf ", user %.3fs", user/nu
         if (ns == nw) printf ", sys %.3fs", sys/ns
         printf "  (%d %ss, /usr/bin/time -p; -v unavailable)\n", nw, unit
-      }
-    ' "$tdir"/*.time >&2
+      }'
   fi
+  find "$tdir" -type f -name '*.time' -print0 |
+    while IFS= read -r -d '' f; do
+      cat "$f"
+    done |
+    awk -v unit="$unit" "$awk_prog" >&2
 }
 
 run_sketch_work() {
