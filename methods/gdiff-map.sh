@@ -14,7 +14,7 @@ OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 CACHE="$OUT/cache/gdiff-map"; OUTDIR="$OUT/blocks/gdiff-map"
 mkdir -p "$CACHE" "$OUTDIR"
-GDIFF="${GDIFF:-../gidiff/gdiff}"
+GDIFF="${GDIFF:-../gdiff/gdiff}"
 JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
