@@ -76,14 +76,15 @@ else
   TIME_STYLE=p
 fi
 
-# Parse per-pair /usr/bin/time logs under $1; print avg wall (and user/sys if -v).
-summarize_pair_times() {
-  local tdir="$1"
+# Parse /usr/bin/time logs under $1; print avg wall (and user/sys).
+# $2 = unit label (e.g. genome, pair).
+summarize_times() {
+  local tdir="$1" unit="${2:-item}"
   [ -d "$tdir" ] || return 0
   # shellcheck disable=SC2012
   [ "$(ls -A "$tdir" 2>/dev/null | wc -l | tr -d ' ')" -gt 0 ] || return 0
   if [ "$TIME_STYLE" = v ]; then
-    awk '
+    awk -v unit="$unit" '
       /Elapsed \(wall clock\) time/ {
         t = $NF
         n = split(t, a, ":")
@@ -96,55 +97,79 @@ summarize_pair_times() {
       /^[ \t]*System time \(seconds\):/ { sys += $NF; ns++ }
       END {
         if (nw < 1) exit
-        printf "  time: avg wall %.3fs/pair", wall/nw
+        printf "  time: avg wall %.3fs/%s", wall/nw, unit
         if (nu == nw) printf ", user %.3fs", user/nu
         if (ns == nw) printf ", sys %.3fs", sys/ns
-        printf "  (%d pairs, /usr/bin/time -v)\n", nw
+        printf "  (%d %ss, /usr/bin/time -v)\n", nw, unit
       }
     ' "$tdir"/*.time >&2
   else
-    awk '
+    awk -v unit="$unit" '
       /^real / { wall += $2; nw++ }
       /^user / { user += $2; nu++ }
       /^sys /  { sys  += $2; ns++ }
       END {
         if (nw < 1) exit
-        printf "  time: avg wall %.3fs/pair", wall/nw
+        printf "  time: avg wall %.3fs/%s", wall/nw, unit
         if (nu == nw) printf ", user %.3fs", user/nu
         if (ns == nw) printf ", sys %.3fs", sys/ns
-        printf "  (%d pairs, /usr/bin/time -p; -v unavailable)\n", nw
+        printf "  (%d %ss, /usr/bin/time -p; -v unavailable)\n", nw, unit
       }
     ' "$tdir"/*.time >&2
   fi
 }
 
+run_sketch_work() {
+  local name="$1" sk_args="$2" s="$3"
+  local sk="$CACHE/$name/$s.gdiff"
+  # shellcheck disable=SC2086
+  "$GDIFF" --num-threads 1 sketch -o "$sk" $sk_args -i "$(fa "$s")" >/dev/null 2>&1
+}
+
+# Time one genome sketch; $4 = optional progress marker.
+run_sketch() {
+  local name="$1" sk_args="$2" s="$3" marker="${4:-}"
+  local tlog="$CACHE/$name/times_sketch/${s}.time"
+  mkdir -p "$CACHE/$name/times_sketch"
+  export -f fa run_sketch_work
+  export DIR SUF GDIFF CACHE
+  if [ "$TIME_STYLE" = v ]; then
+    /usr/bin/time -v -o "$tlog" bash -c 'run_sketch_work "$@"' _ \
+      "$name" "$sk_args" "$s"
+  else
+    /usr/bin/time -p -o "$tlog" bash -c 'run_sketch_work "$@"' _ \
+      "$name" "$sk_args" "$s"
+  fi
+  [ -n "$marker" ] && touch "$marker"
+}
+
 # Core pair work (timed by run_pair via /usr/bin/time).
 run_pair_work() {
   local name="$1" setup="$2" dist_args="$3" q="$4" s="$5"
-  local sum_xy sum_yx sum_xy sum_yx row
-  sum_xy="$CACHE/$name/${q}__${s}.summary"
-  sum_yx="$CACHE/$name/${s}__${q}.summary"
-  sum_xy="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
-  sum_yx="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
+  local sum_fwd sum_rev samples_fwd samples_rev row
+  sum_fwd="$CACHE/$name/${q}__${s}.summary"
+  sum_rev="$CACHE/$name/${s}__${q}.summary"
+  samples_fwd="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
+  samples_rev="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
   row="$CACHE/$name/rows/${q}__${s}.row"
 
   # shellcheck disable=SC2086
   "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-    $dist_args -o "$sum_xy" 2>/dev/null
+    $dist_args -o "$sum_fwd" >/dev/null 2>&1
   # shellcheck disable=SC2086
   "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
-    $dist_args -o "$sum_yx" 2>/dev/null
+    $dist_args -o "$sum_rev" >/dev/null 2>&1
   if [ "$SAMPLES" = 1 ]; then
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-      $dist_args --output-samples -o "$sum_xy" 2>/dev/null
+      $dist_args --output-samples -o "$samples_fwd" >/dev/null 2>&1
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
-      $dist_args --output-samples -o "$sum_yx" 2>/dev/null
+      $dist_args --output-samples -o "$samples_rev" >/dev/null 2>&1
   fi
 
   awk -v q="$q" -v s="$s" -v setup="$setup" -v col="$DIST_COL" \
-      -v fwd="$sum_xy" -v rev="$sum_yx" '
+      -v fwd="$sum_fwd" -v rev="$sum_rev" '
     BEGIN {
       d_fwd = ""; d_rev = ""
       while ((getline line < fwd) > 0) {
@@ -207,7 +232,8 @@ for c in "${CONFIGS[@]}"; do
   # Use a file (not a pipe) so background jobs stay in this shell for `wait`.
   { cut -f1 "$CACHE/pairs.tsv"; cut -f2 "$CACHE/pairs.tsv"; } | sort -u > "$CACHE/$name/genomes.txt"
   pdir="$CACHE/$name/progress_sketch"
-  rm -rf "$pdir"; mkdir -p "$pdir"
+  rm -rf "$pdir" "$CACHE/$name/times_sketch"
+  mkdir -p "$pdir" "$CACHE/$name/times_sketch"
   todo=0
   while read -r s; do
     sk="$CACHE/$name/$s.gdiff"
@@ -222,13 +248,12 @@ for c in "${CONFIGS[@]}"; do
     while read -r s; do
       sk="$CACHE/$name/$s.gdiff"
       [ "$FORCE" != 1 ] && [ -s "$sk" ] && continue
-      # shellcheck disable=SC2086
-      ( "$GDIFF" --num-threads 1 sketch -o "$sk" $sk_args -i "$(fa "$s")" >/dev/null 2>&1
-        touch "$pdir/$s" ) &
+      run_sketch "$name" "$sk_args" "$s" "$pdir/$s" &
       n=$((n + 1))
       throttle "$n" "$todo" "  sketch" "$pdir"
     done < "$CACHE/$name/genomes.txt"
     finish_progress "$pdir" "$todo" "  sketch"
+    summarize_times "$CACHE/$name/times_sketch" "genome"
   fi
 
   # pairs as parallel jobs; each writes CACHE/$name/rows/<q>__<s>.row
@@ -248,7 +273,7 @@ for c in "${CONFIGS[@]}"; do
       throttle "$n" "$todo" "  dist" "$pdir"
     done < "$CACHE/pairs.tsv"
     finish_progress "$pdir" "$todo" "  dist"
-    summarize_pair_times "$CACHE/$name/times"
+    summarize_times "$CACHE/$name/times" "pair"
   fi
 
   { echo "$HDR"
