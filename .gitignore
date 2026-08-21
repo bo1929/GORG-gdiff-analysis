@@ -30,3 +30,6 @@ windows.fa
 **/_mu_test/
 **/benchmark_out/
 **/.work_*/
+
+# Global reusable sketch/cache tree (large binaries)
+/.cache/
