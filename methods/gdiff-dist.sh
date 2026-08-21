@@ -1,29 +1,4 @@
 #!/usr/bin/env bash
-# gdiff dist ANI for the pairs in <pairs.tsv>, one run per CONFIGS entry.
-# Distance is SYMMETRIC: dist is run both A->B and B->A; the reported value
-# is the average of the two directional D_MED estimates.
-# ANI = DIST_COL of the 6-col dist summary
-# (query_file, reference, N, D_MED, D_MED_FILT, N_REMOVED):
-# 4 = D_MED (median MLE distance), 5 = D_MED_FILT (median after outlier
-# removal). The new CLI has no mean column; D_MED replaces the old Q50.
-# SAMPLES=1 additionally runs dist --output-samples (a separate run; sampling
-# is seeded and therefore identical) and concatenates the per-window rows
-# (prefixed with config + pair info) into <outdir>/gdiff-samples/all_<cfg>.tsv
-# and <outdir>/gdiff-samples/all_samples.tsv.
-# Concatenated columns: config, genome_a, genome_b, then the raw dist sample
-# row (qid, start, end, strand, reference, d, lr_bg); d is NaN for unmapped
-# windows (no k-mer hits).
-#
-# Parallelism: pairs (and sketches) run as background jobs with gdiff
-# --num-threads 1. Within-call multithreading does not help single-genome
-# sketch / single-ref dist; job-level parallelism does.
-#
-# usage: gdiff_dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF=../gdiff/gdiff JOBS=8 FORCE=0 ONLY=default DIST_COL=4 SAMPLES=0
-#      THREADS is accepted as an alias for JOBS (legacy).
-# writes: <outdir>/distances/{gdiff-<cfg>.tsv, all_gdiff.tsv},
-#         <outdir>/gdiff-samples/<cfg>/ + all_<cfg>.tsv + all_samples.tsv (SAMPLES=1),
-#         cache in <outdir>/cache/gdiff-dist/
 set -euo pipefail
 DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS="${2:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}"
@@ -39,12 +14,12 @@ DIST_COL="${DIST_COL:-4}"; SAMPLES="${SAMPLES:-1}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
-  "default|k=27,w=35,-l=500,n=200|-k 27 -w 35|-l 500 --sample-size 200"
-  "short-k|k=23,w=31,-l=500,n=200|-k 23 -w 47|-l 500 --sample-size 200"
-  "long-window|k=27,w=35,-l=1000,n=200|-k 27 -w 35|-l 1000 --sample-size 200"
-  "gigantic-window|k=27,w=35,-l=5000,n=300|-k 27 -w 35|-l 5000 --sample-size 300"
-  "full-scale|k=27,w=37,-l=10000,n=500|-k 27 -w 37|-l 10000 --sample-size 500"
-  "fast|k=27,w=43,-l=500,b=2,n=100|-k 27 -w 43|-l 500 -b 2 --sample-size 100"
+  "sensible-cfg|k=27,w=35,-l=1000,n=200,|-k 27 -w 35|-l 1000 --sample-size 200"
+  "short-k|k=23,w=31,-l=1000,n=200|-k 23 -w 47|-l 1000 --sample-size 200"
+  "long-window|k=29,w=37,-l=2000,n=200,frac=0.5|-k 29 -w 37|-l 2000 --frac 0.5 --sample-size 200"
+  "gigantic-window|k=29,w=37,-l=5000,n=200,frac=0.5|-k 29 -w 37|-l 5000 --frac 0.5 --sample-size 200"
+  "full-scale|k=29,w=37,-l=10000,n=500|-k 29 -w 37|-l 10000 --sample-size 500"
+  "fast|k=27,w=43,-l=500,b=4,n=100,frac=0.2|-k 27 -w 43|-l 500 -b 4 --frac 0.2 --sample-size 100"
 )
 ONLY="${ONLY:-all}"
 
@@ -146,30 +121,30 @@ summarize_pair_times() {
 # Core pair work (timed by run_pair via /usr/bin/time).
 run_pair_work() {
   local name="$1" setup="$2" dist_args="$3" q="$4" s="$5"
-  local sum_fwd sum_rev samples_fwd samples_rev row
-  sum_fwd="$CACHE/$name/${q}__${s}.summary"
-  sum_rev="$CACHE/$name/${s}__${q}.summary"
-  samples_fwd="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
-  samples_rev="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
+  local sum_xy sum_yx sum_xy sum_yx row
+  sum_xy="$CACHE/$name/${q}__${s}.summary"
+  sum_yx="$CACHE/$name/${s}__${q}.summary"
+  sum_xy="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
+  sum_yx="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
   row="$CACHE/$name/rows/${q}__${s}.row"
 
   # shellcheck disable=SC2086
   "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-    $dist_args -o "$sum_fwd" >/dev/null 2>&1
+    $dist_args -o "$sum_xy" 2>/dev/null
   # shellcheck disable=SC2086
   "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
-    $dist_args -o "$sum_rev" >/dev/null 2>&1
+    $dist_args -o "$sum_yx" 2>/dev/null
   if [ "$SAMPLES" = 1 ]; then
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$CACHE/$name/$s.gdiff" \
-      $dist_args --output-samples -o "$samples_fwd" >/dev/null 2>&1
+      $dist_args --output-samples -o "$sum_xy" 2>/dev/null
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$CACHE/$name/$q.gdiff" \
-      $dist_args --output-samples -o "$samples_rev" >/dev/null 2>&1
+      $dist_args --output-samples -o "$sum_yx" 2>/dev/null
   fi
 
   awk -v q="$q" -v s="$s" -v setup="$setup" -v col="$DIST_COL" \
-      -v fwd="$sum_fwd" -v rev="$sum_rev" '
+      -v fwd="$sum_xy" -v rev="$sum_yx" '
     BEGIN {
       d_fwd = ""; d_rev = ""
       while ((getline line < fwd) > 0) {
@@ -287,15 +262,15 @@ for c in "${CONFIGS[@]}"; do
   if [ "$SAMPLES" = 1 ]; then
     while read -r q s _; do
       [ "$q" = "$s" ] && continue
-      samples_fwd="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
-      samples_rev="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
-      if [ -s "$samples_fwd" ]; then
+      sum_xy="$OUT/gdiff-samples/$name/${q}__${s}.tsv"
+      sum_yx="$OUT/gdiff-samples/$name/${s}__${q}.tsv"
+      if [ -s "$sum_xy" ]; then
         awk -v name="$name" -v q="$q" -v s="$s" \
-          'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$samples_fwd" >> "$concat"
+          'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$sum_xy" >> "$concat"
       fi
-      if [ -s "$samples_rev" ]; then
+      if [ -s "$sum_yx" ]; then
         awk -v name="$name" -v q="$s" -v s="$q" \
-          'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$samples_rev" >> "$concat"
+          'NF>0 { print name "\t" q "\t" s "\t" $0 }' "$sum_yx" >> "$concat"
       fi
     done < "$CACHE/pairs.tsv"
   fi
