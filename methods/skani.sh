@@ -12,8 +12,9 @@ GENOME_DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" &&
 PAIRS_FILE="${2:?}"
 OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/skani"; DIST_DIR="$OUT/distances"
-mkdir -p "$CACHE" "$DIST_DIR"
+use_cache skani
+DIST_DIR="$OUT/distances"
+mkdir -p "$DIST_DIR"
 THREADS="${THREADS:-16}"; JOBS="${JOBS:-$THREADS}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-all}"
 command -v skani >/dev/null || { echo "missing: skani" >&2; exit 1; }
 

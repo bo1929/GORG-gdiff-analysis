@@ -1,12 +1,24 @@
 # methods/_lib.sh — sourced by method drivers (not run directly).
 # Conventions:
 #   CLI:  <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-#   env:  JOBS (pair parallelism, default 8)  THREADS (tool threads)
+#   env:  JOBS (pair parallelism)  THREADS (tool threads)
 #         FORCE=0  ONLY=all|name[,name...]
+#         CACHE_ROOT (default: <repo>/.cache)
 #   out:  $OUT/distances/<method>-<cfg>.tsv  (+ all_<method>.tsv)
 #         $OUT/blocks/<method>/<cfg>/<q>__<s>.tsv
-#         $OUT/cache/<method>/   (pairs.tsv, genomes.txt, reusable sketches only)
+#   cache (global): $CACHE_ROOT/<method>/
+#         pairs.tsv, genomes.txt, genomes.fa.list, <cfg>/*.{gdiff,msh}
 # No per-pair cache files. Temps live under $TMPDIR and are removed.
+
+METHODS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$METHODS_DIR/.." && pwd)"
+CACHE_ROOT="${CACHE_ROOT:-$REPO_ROOT/.cache}"
+
+# Set CACHE=$CACHE_ROOT/<method> and ensure it exists.
+use_cache() {
+  CACHE="$CACHE_ROOT/$1"
+  mkdir -p "$CACHE"
+}
 
 want() { [ "${ONLY:-all}" = all ] && return 0; case ",$ONLY," in *",$1,"*) return 0;; esac; return 1; }
 

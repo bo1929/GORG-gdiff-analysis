@@ -13,8 +13,9 @@ FA_DIR="$(cd "${2:?}" && pwd)"
 PAIRS_FILE="${3:?}"
 OUT="${4:-./methods_out}"; GBK_SUF="${5:-.gbk}"; FA_SUF="${6:-_contigs.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/blast-genes"; OUTDIR="$OUT/blocks/blast-genes"
-mkdir -p "$CACHE" "$OUTDIR"
+use_cache blast-genes
+OUTDIR="$OUT/blocks/blast-genes"
+mkdir -p "$OUTDIR"
 JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 

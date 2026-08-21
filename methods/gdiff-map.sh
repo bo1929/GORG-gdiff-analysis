@@ -12,8 +12,9 @@ GENOME_DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" &&
 PAIRS_FILE="${2:?}"
 OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/gdiff-map"; OUTDIR="$OUT/blocks/gdiff-map"
-mkdir -p "$CACHE" "$OUTDIR"
+use_cache gdiff-map
+OUTDIR="$OUT/blocks/gdiff-map"
+mkdir -p "$OUTDIR"
 GDIFF="${GDIFF:-../gdiff/gdiff}"
 JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }

@@ -12,8 +12,9 @@ GENOME_DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" &&
 PAIRS_FILE="${2:?}"
 OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
-CACHE="$OUT/cache/minimap"; OUTDIR="$OUT/blocks/minimap"
-mkdir -p "$CACHE" "$OUTDIR"
+use_cache minimap
+OUTDIR="$OUT/blocks/minimap"
+mkdir -p "$OUTDIR"
 JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 command -v minimap2 >/dev/null || { echo "missing: minimap2" >&2; exit 1; }
 
