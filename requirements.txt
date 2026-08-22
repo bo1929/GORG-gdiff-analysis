@@ -1,0 +1,25 @@
+# Python dependencies for GORG-gdiff-analysis scripts.
+# Install:  pip install -r requirements.txt
+#
+# Non-Python tools expected on PATH (not installed via pip):
+#   mash, skani, minimap2, blastn, makeblastdb, nucmer, delta-filter,
+#   show-coords, gdiff (see GDIFF=../gidiff/gdiff)
+#
+# Used by:
+#   blastn_from_gbk.py              -> biopython
+#   compare_blast_gdiff.py          -> numpy, pandas
+#   plot_blast_vs_gdiff.py          -> numpy, pandas, matplotlib, seaborn
+#   scripts/compute_sample_distance.py -> numpy, scipy
+#   methods/anib.sh                 -> pyani-plus (+ blastn on PATH)
+#   pairwise-mapping/*.py           -> stdlib only
+
+biopython>=1.80
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+matplotlib>=3.7
+seaborn>=0.13
+pyani-plus>=1.0.0
+
+# Optional / local-only (not on PyPI here):
+# daimon_runtime  # imported by plot_blast_vs_gdiff.py for setup_plot()
