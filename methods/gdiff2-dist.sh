@@ -38,7 +38,7 @@ CONFIGS=(
   "fast|k=27,w=43,frac=0.2,-l=500,n=100,b=4|-k 27 -w 43 --frac 0.2|-l 500 --sample-size 100 -b 4"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg'
+SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
 
 NG="$(wc -l < "$CACHE/genomes.txt" | tr -d ' ')"
@@ -122,7 +122,7 @@ for c in "${CONFIGS[@]}"; do
           last = dir
           k = (a < ref) ? a "|" ref : ref "|" a
           if (!(k in fl)) next
-          print cfg, a, ref, $2, $3, $4, $5, $6, $7, $8
+          print cfg, a, ref, $2, $3, $4, $5, $6, $7, $8, $9
         }' "$parts/samp.tsv"
     } >> "$SAMP_DIR/gdiff2-$name.tsv"
   fi
