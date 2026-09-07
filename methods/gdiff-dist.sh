@@ -29,7 +29,7 @@ CONFIGS=(
   "fast|k=27,w=43,frac=0.2,-l=500,n=100,b=4|-k 27 -w 43 --frac 0.2|-l 500 --sample-size 100 -b 4"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg'
+SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
 
 # Print one distance line. Optional: append sample rows to $6.
@@ -52,14 +52,25 @@ run_pair() {
     "$(awk -v d="$d" 'BEGIN{print (1-d)*100}')"
   if [ -n "$samp_out" ]; then
     samp="$(mktemp)"
+    # Tag raw sample rows (qid start end strand reference d lr_bg lr_ub) with
+    # cfg/genome ids and strip the fasta suffix from the reference (sketch rname
+    # is the input filename) so it matches genome_b / genome_a.
+    samp_awk() {
+      # shellcheck disable=SC2086
+      awk -F'\t' -v OFS='\t' -v suf="$SUFFIX" \
+        'NF>=8 && $5!~/^#/{sub(suf"($|\\.)","",$5); print cfg"\t"q"\t"s"\t"$0}' \
+        cfg="$1" q="$2" s="$3" "$4" >> "$samp_out"
+    }
+    : > "$samp"
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$skdir/$s.gdiff" \
       $dist_args --output-samples -o "$samp" >/dev/null 2>&1 || true
-    awk -v cfg="$cfg" -v q="$q" -v s="$s" 'NF{print cfg"\t"q"\t"s"\t"$0}' "$samp" >> "$samp_out"
+    samp_awk "$cfg" "$q" "$s" "$samp"
+    : > "$samp"
     # shellcheck disable=SC2086
     "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$skdir/$q.gdiff" \
       $dist_args --output-samples -o "$samp" >/dev/null 2>&1 || true
-    awk -v cfg="$cfg" -v q="$s" -v s="$q" 'NF{print cfg"\t"q"\t"s"\t"$0}' "$samp" >> "$samp_out"
+    samp_awk "$cfg" "$s" "$q" "$samp"
     rm -f "$samp"
   fi
 }

@@ -4,6 +4,9 @@
 # Non-Python tools expected on PATH (not installed via pip):
 #   mash, skani, minimap2, blastn, makeblastdb, nucmer, delta-filter,
 #   show-coords, gdiff (see GDIFF=../gidiff/gdiff)
+# fastANI is a compiled binary installed via micromamba/conda bioConda:
+#   micromamba install -n base -c conda-forge -c bioconda fastani
+# (run_fastani.sh auto-discovers it in the micromamba "base" env.)
 #
 # Used by:
 #   blastn_from_gbk.py              -> biopython
@@ -11,6 +14,8 @@
 #   plot_blast_vs_gdiff.py          -> numpy, pandas, matplotlib, seaborn
 #   scripts/compute_sample_distance.py -> numpy, scipy
 #   methods/anib.sh                 -> pyani-plus (+ blastn on PATH)
+#   simulations/run_anib.sh         -> pyani-plus (+ blastn on PATH)
+#   simulations/run_fastani.sh      -> fastANI (bioconda)
 #   pairwise-mapping/*.py           -> stdlib only
 
 biopython>=1.80

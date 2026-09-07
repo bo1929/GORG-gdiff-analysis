@@ -107,22 +107,19 @@ for c in "${CONFIGS[@]}"; do
     echo "  samples -> $SAMP_DIR/gdiff2-$name.tsv" >&2
     # shellcheck disable=SC2086
     "$GDIFF2" --num-threads "$JOBS" dist2 "$bundle" $HDLA --output-samples -o "$parts/samp.tsv" || true
+    # Raw sample rows: dir qid start end strand query reference d lr_bg lr_ub.
+    # genome_a/genome_b come from the row's own query/reference names (ab: query
+    # is a; ba: query is b), so both directions of a pair land adjacent with
+    # correct labels regardless of emission order or empty directions.
     {
       echo "$SAMP_HDR"
-      awk -F'\t' -v cfg="$name" -v f="$parts/canon" -v gl="$CACHE/genomes.txt" '
-        BEGIN { OFS="\t"
-                n = 0; while ((getline gf < gl) > 0) nm[++n] = gf; close(gl)
-                while ((getline l < f) > 0) fl[l] = 1; close(f)
-                ii = 1; jj = 2 }
+      awk -F'\t' -v cfg="$name" -v f="$parts/canon" '
+        BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
         {
-          dir = $1; ref = $6
-          if (dir == "ab") { if (last == "ba") { jj++; if (jj > n) { ii++; jj = ii + 1 } }
-                             a = nm[ii] }
-          else              { a = nm[jj] }
-          last = dir
-          k = (a < ref) ? a "|" ref : ref "|" a
+          if ($1 == "ab") { a = $6; b = $7 } else { a = $7; b = $6 }
+          k = (a < b) ? a "|" b : b "|" a
           if (!(k in fl)) next
-          print cfg, a, ref, $2, $3, $4, $5, $6, $7, $8, $9
+          print cfg, a, b, $2, $3, $4, $5, $7, $8, $9, $10
         }' "$parts/samp.tsv"
     } >> "$SAMP_DIR/gdiff2-$name.tsv"
   fi
