@@ -80,15 +80,19 @@ for c in "${CONFIGS[@]}"; do
         key=a FS b; rkey=b FS a
         if (!(key in want) && !(rkey in want)) next
         # store under canonical pairs.tsv orientation when possible
+        # af_ref_pct = aligned fraction of genome_a, af_query_pct = of genome_b
+        # (same convention as skani: Ref is the first/canonical genome of the pair).
+        # In a pyani row (query X, subject Y): col4=Query-Cov=cov(X), col5=Subject-Cov=cov(Y).
         if (key in want) {
+          # forward row (a,b): query=a subject=b -> cov(a) is af_ref, cov(b) is af_query
           sum_ani[key]+=ani; n_ani[key]++
-          if (cq!="") { sum_aq[key]+=cq; n_aq[key]++ }
-          if (cs!="") { sum_ar[key]+=cs; n_ar[key]++ }
+          if (cq!="") { sum_ar[key]+=cq; n_ar[key]++ }
+          if (cs!="") { sum_aq[key]+=cs; n_aq[key]++ }
         } else {
-          # reverse: query_cov of (b,a) is af for b as query -> af_ref when orienting as (a,b)
+          # reverse row (b,a): query=b subject=a -> cov(b) is af_query, cov(a) is af_ref
           sum_ani[rkey]+=ani; n_ani[rkey]++
-          if (cq!="") { sum_ar[rkey]+=cq; n_ar[rkey]++ }
-          if (cs!="") { sum_aq[rkey]+=cs; n_aq[rkey]++ }
+          if (cq!="") { sum_aq[rkey]+=cq; n_aq[rkey]++ }
+          if (cs!="") { sum_ar[rkey]+=cs; n_ar[rkey]++ }
         }
       }
       END {

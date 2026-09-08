@@ -20,12 +20,13 @@ JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"
 DIST_COL="${DIST_COL:-4}"; SAMPLES="${SAMPLES:-0}"; ONLY="${ONLY:-all}"
 [ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
 
+# param_setup strings must match the actual sketch/dist flags below.
 CONFIGS=(
-  "sensible-cfg|k=25,w=37,h=11,frac=0.1,-l=1000,n=200,b=6|-k 27 -h 11 -w 37 --frac 0.1|-l 1000 --sample-size 200 -b 6"
-  "short-k|k=23,w=31,h=11,frac=0.5,-l=1000,n=200,b=4|-k 23 -h 11 -w 47 --frac 0.2|-l 1000 --sample-size 200 -b 4"
-  "long-window|k=27,w=37,frac=0.5,-l=2000,n=200,b=4|-k 27 -w 37 --frac 0.2|-l 2000 --sample-size 200 -b 2"
-  "gigantic-window|k=27,w=37,frac=0.5,-l=5000,n=200,b=4|-k 27 -w 37 --frac 0.2|-l 5000 --sample-size 200 -b 4"
-  "full-scale|k=27,w=37,frac=0.5,-l=10000,n=500,b=2|-k 27 -w 37 --frac 0.2|-l 10000 --sample-size 500 -b 2"
+  "sensible-cfg|k=27,w=37,h=11,frac=0.1,-l=1000,n=200,b=6|-k 27 -h 11 -w 37 --frac 0.1|-l 1000 --sample-size 200 -b 6"
+  "short-k|k=23,w=47,h=11,frac=0.2,-l=1000,n=200,b=4|-k 23 -h 11 -w 47 --frac 0.2|-l 1000 --sample-size 200 -b 4"
+  "long-window|k=27,w=37,frac=0.2,-l=2000,n=200,b=2|-k 27 -w 37 --frac 0.2|-l 2000 --sample-size 200 -b 2"
+  "gigantic-window|k=27,w=37,frac=0.2,-l=5000,n=200,b=4|-k 27 -w 37 --frac 0.2|-l 5000 --sample-size 200 -b 4"
+  "full-scale|k=27,w=37,frac=0.2,-l=10000,n=500,b=2|-k 27 -w 37 --frac 0.2|-l 10000 --sample-size 500 -b 2"
   "fast|k=27,w=43,frac=0.2,-l=500,n=100,b=4|-k 27 -w 43 --frac 0.2|-l 500 --sample-size 100 -b 4"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'

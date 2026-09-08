@@ -35,8 +35,8 @@ for c in "${CONFIGS[@]}"; do
   tsv="$DIST_DIR/mash-$name.tsv"
   if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then echo "$name: skip"; continue; fi
   echo "$name [$setup]" >&2
-  # shellcheck disable=SC2086
-  mash sketch -p "$THREADS" $flags -o "$CACHE/$name.msh" -l "$CACHE/genomes.fa.list"
+  # Note: this tool re-sketches from the fasta list on every run (mash triangle
+  # sketches directly from -l); no sketch cache is kept.
   tmp="$(mktemp)"
   # shellcheck disable=SC2086
   mash triangle -p "$THREADS" $flags -E -l "$CACHE/genomes.fa.list" > "$tmp"
