@@ -25,6 +25,3 @@ scipy>=1.10
 matplotlib>=3.7
 seaborn>=0.13
 pyani-plus>=1.0.0
-
-# Optional / local-only (not on PyPI here):
-# daimon_runtime  # imported by plot_blast_vs_gdiff.py for setup_plot()
