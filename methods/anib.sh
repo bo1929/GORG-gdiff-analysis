@@ -22,7 +22,6 @@ python3 -c "import pyani_plus" >/dev/null 2>&1 || { echo "missing: pyani_plus" >
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
 CONFIGS=(
-  "default|frag=1020|--fragsize 1020"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
 load_pairs

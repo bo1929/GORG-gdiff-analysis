@@ -16,8 +16,8 @@ OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache fastani
 DIST_DIR="$OUT/distances"; SAMP_DIR="$OUT/samples"; mkdir -p "$DIST_DIR"
-JOBS="${JOBS:-${THREADS:-8}}"; THREADS="${THREADS:-4}"
-FORCE="${FORCE:-0}"; ONLY="${ONLY:-all}"; SAMPLES="${SAMPLES:-1}"
+JOBS="${JOBS:-${THREADS:-16}}"; THREADS="${THREADS:-2}"
+FORCE="${FORCE:-1}"; ONLY="${ONLY:-all}"; SAMPLES="${SAMPLES:-1}"
 
 FASTANI="${FASTANI:-}"
 [ -z "$FASTANI" ] && command -v fastANI >/dev/null 2>&1 && FASTANI="$(command -v fastANI)"
@@ -28,7 +28,6 @@ FASTANI="${FASTANI:-}"
 CONFIGS=(
   "frag1000|frag=1000,minfrac=0.1|--fragLen 1000 --minFraction 0.1"
   "frag3000|frag=3000,minfrac=0.1|--fragLen 3000 --minFraction 0.1"
-  "frag1000-k16|frag=1000,minfrac=0.1,k=16|--fragLen 1000 --minFraction 0.1 -k 16"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
 SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'

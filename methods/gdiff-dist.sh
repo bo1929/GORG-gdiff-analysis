@@ -10,7 +10,7 @@ source "$HERE/_lib.sh"
 
 GENOME_DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS_FILE="${2:?}"
-OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
+OUT="${3:-./output}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache gdiff
 DIST_DIR="$OUT/distances"; SAMP_DIR="$OUT/samples"

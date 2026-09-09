@@ -22,8 +22,7 @@ CONFIGS=(
   "default|c=125,m=1000|-c 125 -m 1000"
   "fast|c=200,m=1000,fast|--fast"
   "slow|c=30,m=1000,slow|--slow"
-  "sensitive|c=70,robust,min-af=5|-c 70 --robust --min-af 5"
-  "fsensitive|c=30,m=300,robust,min-af=0|-c 30 -m 300 --robust --min-af 0"
+  "sensitive|c=30,robust,min-af=0|-c 70 --robust --min-af 0"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tani_pct\taf_ref_pct\taf_query_pct'
 load_pairs

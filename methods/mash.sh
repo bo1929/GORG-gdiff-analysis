@@ -22,8 +22,7 @@ CONFIGS=(
   "default|k=21,s=1000|-k 21 -s 1000"
   "large-sketch|k=21,s=10000|-k 21 -s 10000"
   "long-k|k=31,s=10000|-k 31 -s 10000"
-  "sensitive|k=16,s=10000|-k 16 -s 10000"
-  "fsensitive|k=16,s=50000|-k 16 -s 50000"
+  "sensitive|k=19,s=10000|-k 19 -s 10000"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tp_value\tshared_hashes\tani_pct'
 load_pairs

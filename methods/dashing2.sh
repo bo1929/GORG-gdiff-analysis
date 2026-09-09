@@ -19,17 +19,17 @@ DIST_DIR="$OUT/distances"; mkdir -p "$DIST_DIR"
 JOBS="${JOBS:-${THREADS:-8}}"; THREADS="${THREADS:-4}"
 FORCE="${FORCE:-0}"; ONLY="${ONLY:-all}"
 
-DASHING2="${DASHING2:-}"
+DASHING2="${DASHING2:-./dashing2-s512bw}"
 [ -z "$DASHING2" ] && command -v dashing2 >/dev/null 2>&1 && DASHING2="$(command -v dashing2)"
-[ -z "$DASHING2" ] && [ -x "$REPO_ROOT/simulations/dashing2-osx" ] && DASHING2="$REPO_ROOT/simulations/dashing2-osx"
-[ -x "${DASHING2:-}" ] || { echo "set DASHING2=/path/to/dashing2 (or use simulations/dashing2-osx)" >&2; exit 1; }
+[ -z "$DASHING2" ] && [ -x "$REPO_ROOT/dashing2-s512bw" ] && DASHING2="$REPO_ROOT/dashing2-s512bw"
+[ -x "${DASHING2:-}" ] || { echo "set DASHING2=/path/to/dashing2" >&2; exit 1; }
 
 CONFIGS=(
-  "default|mash,k=32,s=1024|--mash-distance"
-  "containment|containment,k=32,s=1024|--containment"
-  "symmetric|symmetric-containment,k=32,s=1024|--symmetric-containment"
-  "ctkchange|containment,k=23,s=5000|-k 23 -S 5000 --containment"
-  "fsensitive|mash,k=21,s=5000|-k 21 -S 5000 --mash-distance"
+  "v1|mash,k=31,S=1024|--mash-distance -k 31 -S 1024"
+  "v2|containment,k=32,S=1024|--containment"
+  "v3|symmetric-containment,k=31,s=1024|--symmetric-containment -k 31 -S 1024"
+  "v4|symmetric-containment,k=23,s=2048|--symmetric-containment -k 23 -S 2048"
+  "v5|mash,k=21,S=5000|-k 21 -S 5000 --mash-distance"
 )
 HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
 load_pairs

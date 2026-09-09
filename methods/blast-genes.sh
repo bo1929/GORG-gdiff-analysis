@@ -20,8 +20,6 @@ JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
 CONFIGS=(
-  "default|w=7,e=1000,chain|"
-  "all-hits|w=7,e=1000,all|--all-hits"
 )
 grep -v '^#' "$PAIRS_FILE" | awk 'NF>=2' > "$CACHE/pairs.tsv"
 PY="$HERE/../blastn_from_gbk.py"

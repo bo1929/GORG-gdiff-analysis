@@ -19,10 +19,6 @@ JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-win300}"
 command -v blastn >/dev/null || { echo "missing: blastn" >&2; exit 1; }
 
 CONFIGS=(
-  "win300|W=300,by-subject|-W 300 --by-subject"
-  "win1000|W=1000,by-subject|-W 1000 --by-subject"
-  "maxt5000|max-target-seqs=5000|--max-target-seqs 5000"
-  "fast|w=11,e=10|--word-size 11 --evalue 10"
 )
 load_pairs
 PY="$HERE/../pairwise-mapping/blastn_blocks.py"

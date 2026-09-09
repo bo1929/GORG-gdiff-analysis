@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-# Batched gdiff2 (sketch2/dist2) all-pairs ANI via one multithreaded process per
-# command instead of one gdiff process per (pair x direction). For N genomes this
-# replaces ~N sketch + ~Nc2*2 dist invocations with 2 invocations: a single
-# `sketch2` over the whole set (one shared bundle) and a single `dist2` over that
-# bundle (within-mode). All pair parallelism is internal (--num-threads), so with
-# 800 genomes (~320k pairs) there is no per-pair process spawn at all.
 # usage: gdiff2-dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF2 JOBS=8 FORCE=0 ONLY=all HDIST=4 SAMPLES=0
+# env: GDIFF2 JOBS=8 FORCE=0 ONLY=all SAMPLES=0
 # out: distances/gdiff2-<cfg>.tsv  [samples/gdiff2-<cfg>.tsv]  all_gdiff2.tsv
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -15,31 +9,22 @@ source "$HERE/_lib.sh"
 
 GENOME_DIR="$(cd "${1:?usage: $0 <genome_dir> <pairs.tsv> [outdir] [suffix]}" && pwd)"
 PAIRS_FILE="${2:?}"
-OUT="${3:-./methods_out}"; SUFFIX="${4:-.fasta}"
+OUT="${3:-./output}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache gdiff2
 DIST_DIR="$OUT/distances"; SAMP_DIR="$OUT/samples"
 mkdir -p "$DIST_DIR"
 GDIFF2="${GDIFF2:-../gdiff/gdiff2}"
-JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"
-HDIST="${HDIST:-4}"; SAMPLES="${SAMPLES:-0}"; ONLY="${ONLY:-all}"
+JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-1}"
+SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
 [ -x "$GDIFF2" ] || { echo "set GDIFF2=/path/to/gdiff2" >&2; exit 1; }
-if [ "$HDIST" != 4 ]; then HDLA="--hdist-th $HDIST"; else HDLA=""; fi
 
-# Mirror the v1 gdiff configs: sketch2 takes both the sketch (-k/-w/-h/--frac)
-# and the window args (-l/--sample-size/-b) in a single pass; dist2 only needs
-# --hdist-th. Identical param setups keep tsv rows comparable to gdiff-dist.sh.
-# param_setup strings must match the actual sketch2/dist2 flags below.
 CONFIGS=(
-  "sensible-cfg|k=27,w=37,h=11,frac=0.1,-l=1000,n=200,b=6|-k 27 -h 11 -w 37 --frac 0.1|-l 1000 --sample-size 200 -b 6"
-  "short-k|k=23,w=47,h=11,frac=0.2,-l=1000,n=200,b=4|-k 23 -h 11 -w 47 --frac 0.2|-l 1000 --sample-size 200 -b 4"
-  "long-window|k=27,w=37,frac=0.2,-l=2000,n=200,b=2|-k 27 -w 37 --frac 0.2|-l 2000 --sample-size 200 -b 2"
-  "gigantic-window|k=27,w=37,frac=0.2,-l=5000,n=200,b=4|-k 27 -w 37 --frac 0.2|-l 5000 --sample-size 200 -b 4"
-  "full-scale|k=27,w=37,frac=0.2,-l=10000,n=500,b=2|-k 27 -w 37 --frac 0.2|-l 10000 --sample-size 500 -b 2"
-  "fast|k=27,w=43,frac=0.2,-l=500,n=100,b=4|-k 27 -w 43 --frac 0.2|-l 500 --sample-size 100 -b 4"
+  "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33|-l 500 --sample-size 1000"
+  "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5|-l 500 --sample-size 1000"
 )
-HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
+HEADER=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
+SAMPLES_HEADER=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
 
 NG="$(wc -l < "$CACHE/genomes.txt" | tr -d ' ')"
@@ -50,7 +35,7 @@ for c in "${CONFIGS[@]}"; do
   want "$name" || continue
   tsv="$DIST_DIR/gdiff2-$name.tsv"
   [ "$FORCE" != 1 ] && [ -s "$tsv" ] && { echo "$name: skip"; continue; }
-  echo "$name [$setup] jobs=$JOBS hdist=$HDIST" >&2
+  echo "$name [$setup] jobs=$JOBS" >&2
   skdir="$CACHE/$name"; mkdir -p "$skdir"
   parts="$(mktemp -d)"
   bundle="$skdir/all.g2"
@@ -77,7 +62,7 @@ for c in "${CONFIGS[@]}"; do
   # --- single dist2: within-mode over the whole bundle, internal threads ---
   echo "  dist [$((NG * (NG - 1) / 2)) pairs, threads=$JOBS]" >&2
   # shellcheck disable=SC2086
-  "$GDIFF2" --num-threads "$JOBS" dist2 "$bundle" $HDLA -o "$parts/raw.tsv" || {
+  "$GDIFF2" --num-threads "$JOBS" dist2 "$bundle" -o "$parts/raw.tsv" || {
     echo "dist2 failed for $name" >&2; rm -rf "$parts"; exit 1; }
 
   # Canonical unordered pair keys (what the v1 script emitted from this pairs
@@ -86,7 +71,7 @@ for c in "${CONFIGS[@]}"; do
     "$CACHE/pairs.tsv" | sort -u > "$parts/canon"
   if [ ! -s "$parts/canon" ]; then rm -rf "$parts"; continue; fi
 
-  echo "$HDR" > "$tsv"
+  echo "$HEADER" > "$tsv"
   awk -F'\t' -v setup="$setup" -v f="$parts/canon" '
     BEGIN { while ((getline l < f) > 0) seen[l] = 1; close(f) }
     {
@@ -107,13 +92,9 @@ for c in "${CONFIGS[@]}"; do
     mkdir -p "$SAMP_DIR"
     echo "  samples -> $SAMP_DIR/gdiff2-$name.tsv" >&2
     # shellcheck disable=SC2086
-    "$GDIFF2" --num-threads "$JOBS" dist2 "$bundle" $HDLA --output-samples -o "$parts/samp.tsv" || true
-    # Raw sample rows: dir qid start end strand query reference d lr_bg lr_ub.
-    # genome_a/genome_b come from the row's own query/reference names (ab: query
-    # is a; ba: query is b), so both directions of a pair land adjacent with
-    # correct labels regardless of emission order or empty directions.
+    "$GDIFF2" --num-threads "$JOBS" dist2 "$bundle" --output-samples -o "$parts/samp.tsv" || true
     {
-      echo "$SAMP_HDR"
+      echo "$SAMPLES_HEADER"
       awk -F'\t' -v cfg="$name" -v f="$parts/canon" '
         BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
         {
@@ -128,5 +109,5 @@ for c in "${CONFIGS[@]}"; do
   rm -rf "$parts"
 done
 
-emit_all_distances gdiff2 "$HDR" "${CONFIGS[@]}"
+emit_all_distances gdiff2 "$HEADER" "${CONFIGS[@]}"
 echo "done -> $DIST_DIR" >&2

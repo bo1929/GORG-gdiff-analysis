@@ -19,10 +19,6 @@ JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 command -v nucmer >/dev/null || { echo "missing: nucmer" >&2; exit 1; }
 
 CONFIGS=(
-  "default|delta-filter -1|"
-  "maxmatch|maxmatch,c=25,l=15|--maxmatch -c 25 -l 15"
-  "sensitive|maxmatch,c=25,b=500,g=200,l=15|--sensitive"
-  "sensitive-min85|sensitive,min-id=85|--sensitive --min-identity 85"
 )
 load_pairs
 PY="$HERE/../pairwise-mapping/mummer_blocks.py"

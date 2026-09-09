@@ -19,10 +19,6 @@ JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"; ONLY="${ONLY:-default}"
 command -v minimap2 >/dev/null || { echo "missing: minimap2" >&2; exit 1; }
 
 CONFIGS=(
-  "default|asm20|"
-  "sensitive|k=15,w=5,m=10|--sensitive"
-  "asm5|preset=asm5|--preset asm5"
-  "minid85|sensitive,min-id=85|--sensitive --min-identity 85"
 )
 load_pairs
 PY="$HERE/../pairwise-mapping/minimap_blocks.py"
