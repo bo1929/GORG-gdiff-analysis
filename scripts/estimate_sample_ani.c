@@ -189,13 +189,14 @@ static PairStats compute_stats(const Entry *e, double chi_sq, double min_portion
 
         if (chosen.lr_ub == 0.0) st.num_lr_ub_zero++;
 
-        /* unfiltered accumulator */
+        /* unfiltered accumulator (n in R after filter(is.finite(d))) */
         unf_mean_sum += chosen.d; unf_cnt++;
         if (isnan(st.max_unfiltered) || chosen.d > st.max_unfiltered)
             st.max_unfiltered = chosen.d;
 
-        /* filtered: keep if lr_ub >= chi_sq (or lr_ub missing -> keep) */
-        int keep = isnan(chosen.lr_ub) || chosen.lr_ub >= chi_sq;
+        /* filter: keep strictly lr_ub > chi_sq; NA/missing lr_ub is NOT kept
+           (mirrors R: sum(d*(lr_ub>lrth), na.rm=T) drops NA lr_ub) */
+        int keep = !isnan(chosen.lr_ub) && chosen.lr_ub > chi_sq;
         if (keep) {
             fil_mean_sum += chosen.d; fil_cnt++;
             if (isnan(st.max_distance) || chosen.d > st.max_distance)
@@ -206,17 +207,19 @@ static PairStats compute_stats(const Entry *e, double chi_sq, double min_portion
     }
     free(s1); free(s2);
 
+    /* R: nxd = sum(lr_ub>lrth, na.rm=T)/n();  ddd = filtered mean;
+       iddd = if_else(nxd > min_portion, ddd, mean(d, na.rm=T)) */
     size_t non_na = unf_cnt;
     double portion = non_na > 0 ? (double)fil_cnt / (double)non_na : 0.0;
     double unf_mean = unf_cnt ? unf_mean_sum / unf_cnt : NAN;
     double fil_mean = fil_cnt ? fil_mean_sum / fil_cnt : NAN;
 
-    if (portion < min_portion) {
-        st.distance = unf_mean;
-        st.alternative_mean = fil_mean;
-    } else {
+    if (portion > min_portion) {   /* strict >, matching R iddd */
         st.distance = fil_mean;
         st.alternative_mean = unf_mean;
+    } else {
+        st.distance = unf_mean;
+        st.alternative_mean = fil_mean;
     }
     return st;
 }
