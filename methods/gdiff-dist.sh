@@ -20,8 +20,12 @@ SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
 [ -x "$gdiff" ] || { echo "set gdiff=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
-  "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33|-l 500 --sample-size 1000"
-  "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5|-l 500 --sample-size 1000"
+  "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 4"
+  "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 4"
+  "xyzs|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 3"
+  "fgh|k=23,w=23,frac=0.50,-l=1000,n=1000|-k 23 -w 23 --frac 0.50 -l 1000 --sample-size 1000|--hdist-th 3"
+  "klm|k=23,w=23,frac=0.66,-l=250,n=1000|-k 23 -w 23 --frac 0.66 -l 250 --sample-size 1000|--hdist-th 3"
+  "abcs|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
 )
 SAMPLES_HEADER=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
