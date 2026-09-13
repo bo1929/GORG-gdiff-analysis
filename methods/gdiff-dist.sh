@@ -14,18 +14,19 @@ mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache gdiff
 SAMP_DIR="$OUT/samples"; mkdir -p "$SAMP_DIR"
 # bin/gdiff dispatches to the bundled build for this OS/arch.
-gdiff="${gdiff:-$REPO_ROOT/bin/gdiff}"
+# gdiff="${gdiff:-$REPO_ROOT/bin/gdiff}"
+gdiff="${gdiff:-../gdiff/gdiff}"
 JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-1}"
 SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
 [ -x "$gdiff" ] || { echo "set gdiff=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
   "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 4"
-  "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 4"
-  "xyzs|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 3"
-  "fgh|k=23,w=23,frac=0.50,-l=1000,n=1000|-k 23 -w 23 --frac 0.50 -l 1000 --sample-size 1000|--hdist-th 3"
-  "klm|k=23,w=23,frac=0.66,-l=250,n=1000|-k 23 -w 23 --frac 0.66 -l 250 --sample-size 1000|--hdist-th 3"
-  "abcs|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
+  # "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 4"
+  # "xyzs|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 3"
+  # "fgh|k=23,w=23,frac=0.50,-l=1000,n=1000|-k 23 -w 23 --frac 0.50 -l 1000 --sample-size 1000|--hdist-th 3"
+  # "klm|k=23,w=23,frac=0.66,-l=250,n=1000|-k 23 -w 23 --frac 0.66 -l 250 --sample-size 1000|--hdist-th 3"
+  # "abcs|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
 )
 SAMPLES_HEADER=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
@@ -41,7 +42,7 @@ for c in "${CONFIGS[@]}"; do
   echo "$name [$setup] jobs=$JOBS" >&2
   skdir="$CACHE/$name"; mkdir -p "$skdir"
   parts="$(mktemp -d)"
-  bundle="$skdir/all.g2"
+  bundle="$skdir/all.gdsk"
 
   # Rebuild the bundle only when forced or when the genome set changed.
   rebuild=0
@@ -55,14 +56,14 @@ for c in "${CONFIGS[@]}"; do
   else
     rm -f "$bundle"
     while read -r g; do printf '%s\t%s\n' "$g" "$(fa "$g")"; done < "$CACHE/genomes.txt" > "$parts/input.list"
-    echo "  sketch2 [$NG genomes, threads=$JOBS] -> $bundle" >&2
+    echo "  sketch [$NG genomes, threads=$JOBS] -> $bundle" >&2
     # shellcheck disable=SC2086
-    "$gdiff" --num-threads "$JOBS" sketch2 --input-list "$parts/input.list" $sk_args $dist_args -o "$bundle" || {
-      echo "sketch2 failed for $name" >&2; rm -rf "$parts"; exit 1; }
+    "$gdiff" --num-threads "$JOBS" sketch --input-list "$parts/input.list" $sk_args -o "$bundle" || {
+      echo "sketch failed for $name" >&2; rm -rf "$parts"; exit 1; }
     cp "$CACHE/genomes.txt" "$skdir/genomes.txt"
   fi
 
-  # --- single dist2: within-mode over the whole bundle, internal threads ---
+  # --- single dist: within-mode over the whole bundle, internal threads ---
   echo "  dist [$((NG * (NG - 1) / 2)) pairs, threads=$JOBS]" >&2
 
   # Canonical unordered pair keys (what the v1 script emitted from this pairs
@@ -75,9 +76,9 @@ for c in "${CONFIGS[@]}"; do
     mkdir -p "$SAMP_DIR"
     echo "  samples -> $SAMP_DIR/gdiff-$name.tsv" >&2
     # shellcheck disable=SC2086
-    "$gdiff" --num-threads "$JOBS" dist2 "$bundle" --output-samples -o "$parts/samp.tsv" || true
+    "$gdiff" --num-threads "$JOBS" dist "$bundle" --output-samples -o "$parts/samp.tsv" || true
     {
-      echo "$SAMPLES_HEADER"
+      # echo "$SAMPLES_HEADER"
       awk -F'\t' -v cfg="$name" -v f="$parts/canon" '
         BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
         {
