@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Symmetric gdiff dist ANI over pairs.tsv. Cache = sketches only.
 # usage: gdiff-dist.sh <genome_dir> <pairs.tsv> [outdir] [suffix=.fasta]
-# env: GDIFF JOBS=8 FORCE=0 ONLY=all DIST_COL=4 SAMPLES=0
-# out: distances/gdiff-<cfg>.tsv  [samples/gdiff-<cfg>.tsv]
+# env: gdiff JOBS=8 FORCE=0 ONLY=all SAMPLES=1
+# out: samples/gdiff-<cfg>.tsv  (distance summaries are not written)
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=_lib.sh
@@ -13,138 +12,80 @@ PAIRS_FILE="${2:?}"
 OUT="${3:-./output}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache gdiff
-DIST_DIR="$OUT/distances"; SAMP_DIR="$OUT/samples"
-mkdir -p "$DIST_DIR"
-GDIFF="${GDIFF:-../gdiff/gdiff}"
-JOBS="${JOBS:-${THREADS:-8}}"; FORCE="${FORCE:-0}"
-DIST_COL="${DIST_COL:-4}"; SAMPLES="${SAMPLES:-0}"; ONLY="${ONLY:-all}"
-[ -x "$GDIFF" ] || { echo "set GDIFF=/path/to/gdiff" >&2; exit 1; }
+SAMP_DIR="$OUT/samples"; mkdir -p "$SAMP_DIR"
+# bin/gdiff dispatches to the bundled build for this OS/arch.
+gdiff="${gdiff:-$REPO_ROOT/bin/gdiff}"
+JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-1}"
+SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
+[ -x "$gdiff" ] || { echo "set gdiff=/path/to/gdiff" >&2; exit 1; }
 
-# param_setup strings must match the actual sketch/dist flags below.
 CONFIGS=(
-  "sensible-cfg|k=27,w=37,h=11,frac=0.1,-l=1000,n=200,b=6|-k 27 -h 11 -w 37 --frac 0.1|-l 1000 --sample-size 200 -b 6"
-  "short-k|k=23,w=47,h=11,frac=0.2,-l=1000,n=200,b=4|-k 23 -h 11 -w 47 --frac 0.2|-l 1000 --sample-size 200 -b 4"
-  "long-window|k=27,w=37,frac=0.2,-l=2000,n=200,b=2|-k 27 -w 37 --frac 0.2|-l 2000 --sample-size 200 -b 2"
-  "gigantic-window|k=27,w=37,frac=0.2,-l=5000,n=200,b=4|-k 27 -w 37 --frac 0.2|-l 5000 --sample-size 200 -b 4"
-  "full-scale|k=27,w=37,frac=0.2,-l=10000,n=500,b=2|-k 27 -w 37 --frac 0.2|-l 10000 --sample-size 500 -b 2"
-  "fast|k=27,w=43,frac=0.2,-l=500,n=100,b=4|-k 27 -w 43 --frac 0.2|-l 500 --sample-size 100 -b 4"
+  "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33|-l 500 --sample-size 1000"
+  "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5|-l 500 --sample-size 1000"
 )
-HDR=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
-SAMP_HDR=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
+SAMPLES_HEADER=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 load_pairs
 
-# Print one distance line. Optional: append sample rows to $6.
-run_pair() {
-  local cfg="$1" setup="$2" dist_args="$3" q="$4" s="$5" skdir="$6" samp_out="${7:-}"
-  local fwd rev d_fwd d_rev d samp
-  fwd="$(mktemp)"; rev="$(mktemp)"
-  # shellcheck disable=SC2086
-  "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$skdir/$s.gdiff" $dist_args -o "$fwd" >/dev/null 2>&1 || true
-  # shellcheck disable=SC2086
-  "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$skdir/$q.gdiff" $dist_args -o "$rev" >/dev/null 2>&1 || true
-  d_fwd=$(awk -v c="$DIST_COL" 'NF>=c && $c~/^[0-9.]/{print $c; exit}' "$fwd" || true)
-  d_rev=$(awk -v c="$DIST_COL" 'NF>=c && $c~/^[0-9.]/{print $c; exit}' "$rev" || true)
-  rm -f "$fwd" "$rev"
-  [ -n "${d_fwd:-}" ] || [ -n "${d_rev:-}" ] || return 0
-  if [ -z "${d_fwd:-}" ]; then d=$d_rev
-  elif [ -z "${d_rev:-}" ]; then d=$d_fwd
-  else d=$(awk -v a="$d_fwd" -v b="$d_rev" 'BEGIN{printf "%.9f",(a+b)/2}'); fi
-  printf 'gdiff_dist\t%s\t%s\t%s\t%s\t%.6f\n' "$setup" "$q" "$s" "$d" \
-    "$(awk -v d="$d" 'BEGIN{print (1-d)*100}')"
-  if [ -n "$samp_out" ]; then
-    samp="$(mktemp)"
-    # Tag raw sample rows (qid start end strand reference d lr_bg lr_ub) with
-    # cfg/genome ids and strip the fasta suffix from the reference (sketch rname
-    # is the input filename) so it matches genome_b / genome_a.
-    samp_awk() {
-      # shellcheck disable=SC2086
-      awk -F'\t' -v OFS='\t' -v suf="$SUFFIX" \
-        'NF>=8 && $5!~/^#/{sub(suf"($|\\.)","",$5); print cfg"\t"q"\t"s"\t"$0}' \
-        cfg="$1" q="$2" s="$3" "$4" >> "$samp_out"
-    }
-    : > "$samp"
-    # shellcheck disable=SC2086
-    "$GDIFF" --num-threads 1 dist "$(fa "$q")" "$skdir/$s.gdiff" \
-      $dist_args --output-samples -o "$samp" >/dev/null 2>&1 || true
-    samp_awk "$cfg" "$q" "$s" "$samp"
-    : > "$samp"
-    # shellcheck disable=SC2086
-    "$GDIFF" --num-threads 1 dist "$(fa "$s")" "$skdir/$q.gdiff" \
-      $dist_args --output-samples -o "$samp" >/dev/null 2>&1 || true
-    samp_awk "$cfg" "$s" "$q" "$samp"
-    rm -f "$samp"
-  fi
-}
+NG="$(wc -l < "$CACHE/genomes.txt" | tr -d ' ')"
+[ "$NG" -ge 2 ] || { echo "fewer than 2 genomes in $PAIRS_FILE" >&2; exit 1; }
 
 for c in "${CONFIGS[@]}"; do
   IFS='|' read -r name setup sk_args dist_args <<< "$c"
   want "$name" || continue
-  tsv="$DIST_DIR/gdiff-$name.tsv"
-  if [ "$FORCE" != 1 ] && [ -s "$tsv" ]; then echo "$name: skip"; continue; fi
+  samp_tsv="$SAMP_DIR/gdiff-$name.tsv"
+  [ "$FORCE" != 1 ] && [ -s "$samp_tsv" ] && { echo "$name: skip"; continue; }
   echo "$name [$setup] jobs=$JOBS" >&2
   skdir="$CACHE/$name"; mkdir -p "$skdir"
   parts="$(mktemp -d)"
+  bundle="$skdir/all.g2"
 
-  # --- sketch ---
-  todo=0
-  while read -r g; do
-    [ "$FORCE" != 1 ] && [ -s "$skdir/$g.gdiff" ] && continue
-    todo=$((todo + 1))
-  done < "$CACHE/genomes.txt"
-  if [ "$todo" -eq 0 ]; then
+  # Rebuild the bundle only when forced or when the genome set changed.
+  rebuild=0
+  [ "$FORCE" = 1 ] && rebuild=1
+  [ -s "$bundle" ] || rebuild=1
+  if [ -s "$skdir/genomes.txt" ] && ! cmp -s "$CACHE/genomes.txt" "$skdir/genomes.txt"; then rebuild=1; fi
+  if [ ! -s "$skdir/genomes.txt" ]; then rebuild=1; fi
+
+  if [ "$rebuild" -eq 0 ]; then
     echo "  sketch: cached" >&2
   else
-    progress 0 "$todo" "sketch"
-    n=0
-    while read -r g; do
-      [ "$FORCE" != 1 ] && [ -s "$skdir/$g.gdiff" ] && continue
-      # shellcheck disable=SC2086
-      ( "$GDIFF" --num-threads 1 sketch -o "$skdir/$g.gdiff" $sk_args -i "$(fa "$g")" >/dev/null 2>&1 ) &
-      n=$((n + 1))
-      if (( n % JOBS == 0 )); then wait; progress "$n" "$todo" "sketch"; fi
-    done < "$CACHE/genomes.txt"
-    wait; progress "$todo" "$todo" "sketch"
+    rm -f "$bundle"
+    while read -r g; do printf '%s\t%s\n' "$g" "$(fa "$g")"; done < "$CACHE/genomes.txt" > "$parts/input.list"
+    echo "  sketch2 [$NG genomes, threads=$JOBS] -> $bundle" >&2
+    # shellcheck disable=SC2086
+    "$gdiff" --num-threads "$JOBS" sketch2 --input-list "$parts/input.list" $sk_args $dist_args -o "$bundle" || {
+      echo "sketch2 failed for $name" >&2; rm -rf "$parts"; exit 1; }
+    cp "$CACHE/genomes.txt" "$skdir/genomes.txt"
   fi
 
-  # --- dist (shards: at most JOBS temp files at a time) ---
-  np=$(awk '$1!=$2{n++} END{print n+0}' "$CACHE/pairs.tsv")
-  echo "$HDR" > "$tsv"
-  : > "$parts/out"
+  # --- single dist2: within-mode over the whole bundle, internal threads ---
+  echo "  dist [$((NG * (NG - 1) / 2)) pairs, threads=$JOBS]" >&2
+
+  # Canonical unordered pair keys (what the v1 script emitted from this pairs
+  # file); the full all-vs-all matrix is exact, subsets get filtered out.
+  awk 'NF>=2{a=$1;b=$2;if(a<b)k=a"|"b;else k=b"|"a;if(!(k in S)){S[k]=1;print k}}' \
+    "$CACHE/pairs.tsv" | sort -u > "$parts/canon"
+  if [ ! -s "$parts/canon" ]; then rm -rf "$parts"; continue; fi
+
   if [ "$SAMPLES" = 1 ]; then
     mkdir -p "$SAMP_DIR"
-    echo "$SAMP_HDR" > "$SAMP_DIR/gdiff-$name.tsv"
-    : > "$parts/samp"
+    echo "  samples -> $SAMP_DIR/gdiff-$name.tsv" >&2
+    # shellcheck disable=SC2086
+    "$gdiff" --num-threads "$JOBS" dist2 "$bundle" --output-samples -o "$parts/samp.tsv" || true
+    {
+      echo "$SAMPLES_HEADER"
+      awk -F'\t' -v cfg="$name" -v f="$parts/canon" '
+        BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
+        {
+          if ($1 == "ab") { a = $6; b = $7 } else { a = $7; b = $6 }
+          k = (a < b) ? a "|" b : b "|" a
+          if (!(k in fl)) next
+          print cfg, a, b, $2, $3, $4, $5, $7, $8, $9, $10
+        }' "$parts/samp.tsv"
+    } >> "$SAMP_DIR/gdiff-$name.tsv"
   fi
-  progress 0 "$np" "dist"
-  n=0; bi=0
-  while read -r q s _; do
-    [ "$q" = "$s" ] && continue
-    sp=""
-    if [ "$SAMPLES" = 1 ]; then sp="$parts/s.$bi"; : > "$sp"; fi
-    (
-      run_pair "$name" "$setup" "$dist_args" "$q" "$s" "$skdir" "$sp" >> "$parts/p.$bi"
-    ) &
-    n=$((n + 1)); bi=$((bi + 1))
-    if (( n % JOBS == 0 )); then
-      wait
-      cat "$parts"/p.* >> "$parts/out" 2>/dev/null || true
-      if [ "$SAMPLES" = 1 ]; then cat "$parts"/s.* >> "$parts/samp" 2>/dev/null || true; fi
-      rm -f "$parts"/p.* "$parts"/s.*
-      bi=0
-      progress "$n" "$np" "dist"
-    fi
-  done < "$CACHE/pairs.tsv"
-  wait
-  cat "$parts"/p.* >> "$parts/out" 2>/dev/null || true
-  if [ "$SAMPLES" = 1 ]; then cat "$parts"/s.* >> "$parts/samp" 2>/dev/null || true; fi
-  progress "$np" "$np" "dist"
-  cat "$parts/out" >> "$tsv"
-  if [ "$SAMPLES" = 1 ] && [ -s "$parts/samp" ]; then
-    cat "$parts/samp" >> "$SAMP_DIR/gdiff-$name.tsv"
-  fi
+
   rm -rf "$parts"
-  echo "  $np pairs -> $tsv" >&2
 done
 
-emit_all_distances gdiff "$HDR" "${CONFIGS[@]}"
-echo "done -> $DIST_DIR" >&2
+echo "done -> $SAMP_DIR" >&2
