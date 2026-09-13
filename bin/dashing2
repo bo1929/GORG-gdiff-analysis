@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Arch dispatcher for the bundled dashing2 builds.
+# Point scripts here instead of at a specific binary so they run on
+# macOS (arm64) and Linux (x86-64) without edits.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64)             exec "$HERE/dashing2-osx" "$@" ;;
+  Linux/x86_64|Linux/amd64) exec "$HERE/dashing2-s512bw" "$@" ;;
+  *)
+    echo "dashing2: unsupported platform $(uname -s)/$(uname -m)" >&2
+    exit 127
+    ;;
+esac

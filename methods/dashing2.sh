@@ -19,10 +19,9 @@ DIST_DIR="$OUT/distances"; mkdir -p "$DIST_DIR"
 JOBS="${JOBS:-${THREADS:-8}}"; THREADS="${THREADS:-4}"
 FORCE="${FORCE:-0}"; ONLY="${ONLY:-all}"
 
-DASHING2="${DASHING2:-./dashing2-s512bw}"
-[ -z "$DASHING2" ] && command -v dashing2 >/dev/null 2>&1 && DASHING2="$(command -v dashing2)"
-[ -z "$DASHING2" ] && [ -x "$REPO_ROOT/dashing2-s512bw" ] && DASHING2="$REPO_ROOT/dashing2-s512bw"
-[ -x "${DASHING2:-}" ] || { echo "set DASHING2=/path/to/dashing2" >&2; exit 1; }
+# bin/dashing2 dispatches to the bundled build for this OS/arch.
+DASHING2="${DASHING2:-$REPO_ROOT/bin/dashing2}"
+[ -x "$DASHING2" ] || { echo "set DASHING2=/path/to/dashing2" >&2; exit 1; }
 
 CONFIGS=(
   "v1|mash,k=31,S=1024|--mash-distance -k 31 -S 1024"

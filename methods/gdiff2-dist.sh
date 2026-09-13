@@ -13,7 +13,8 @@ OUT="${3:-./output}"; SUFFIX="${4:-.fasta}"
 mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
 use_cache gdiff2
 SAMP_DIR="$OUT/samples"; mkdir -p "$SAMP_DIR"
-GDIFF2="${GDIFF2:-../gdiff/gdiff2}"
+# bin/gdiff2 dispatches to the bundled build for this OS/arch.
+GDIFF2="${GDIFF2:-$REPO_ROOT/bin/gdiff2}"
 JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-1}"
 SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
 [ -x "$GDIFF2" ] || { echo "set GDIFF2=/path/to/gdiff2" >&2; exit 1; }
