@@ -10,8 +10,8 @@ REPO="$(cd "$HERE/.." && pwd)"
 # ---- defaults (edit these) ------------------------------------------------
 THREADS=16
 SAMPLE_N=100
-SEED=42
-FORCE=0                         # 1 = redraw sample and redo selected methods
+SEED=79
+FORCE=1 # 1 = redraw sample and redo selected methods
 
 PAIRS_TSV="$REPO/all_pairs.tsv"
 GENOME_DIR="$REPO/contigs-gt80-complete"
@@ -19,19 +19,19 @@ GENOME_SUFFIX="_contigs.fasta"
 OUT="$HERE/output"
 
 DASHING2="$REPO/bin/dashing2"
-GDIFF="$REPO/bin/gdiff"
+# GDIFF="$REPO/bin/gdiff"
+GDIFF="../../gdiff/gdiff"
 MASH=mash
 SKANI=skani
-FASTANI=fastani                 # also accepts fastANI
+FASTANI=fastani # also accepts fastANI
 ANIB=anib
 
 DASHING2_ARGS="--symmetric-containment -k 23 -S 2048"
 SKANI_ARGS="--slow"
 GDIFF_SKETCH_ARGS="-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000"
 GDIFF_DIST_ARGS="--hdist-th 3"
-MASH_ARGS="-k 21 -s 1000"
-FASTANI_ARGS=""
-ANIB_ARGS=""
+MASH_ARGS="-k 19 -s 10000"
+FASTANI_ARGS="--fragLen 3000 --minFraction 0.1"
 
 METHODS=(dashing2 skani mash gdiff fastani)
 # --------------------------------------------------------------------------
@@ -217,7 +217,7 @@ run_skani() {
   echo "[skani/$cfg] dist ($NP pairs)" >&2
   # shellcheck disable=SC2086
   measure skani "$cfg" dist \
-    "$SKANI" triangle -t "$THREADS" $SKANI_ARGS -l "$sl" -o "$dist"
+    "$SKANI" triangle -t "$THREADS" $SKANI_ARGS --min-af 0 -l "$sl" -o "$dist"
   echo "  -> $dist" >&2
 }
 
@@ -237,7 +237,7 @@ run_gdiff() {
 }
 
 run_mash() {
-  local cfg=default msh="$OUT/mash.msh" dist="$OUT/mash.default.dist.tsv"
+  local cfg=sensitive msh="$OUT/mash.msh" dist="$OUT/mash.sensitive.dist.tsv"
   rm -f "$msh"
   echo "[mash/$cfg] sketch -> $msh" >&2
   # shellcheck disable=SC2086
@@ -250,7 +250,7 @@ run_mash() {
 }
 
 run_fastani() {
-  local cfg=default dist="$OUT/fastani.default.dist.tsv" bin="$FASTANI"
+  local cfg=frag3000 dist="$OUT/fastani.frag3000.dist.tsv" bin="$FASTANI"
   if ! command -v "$bin" >/dev/null; then
     if [ "$bin" = "fastani" ] && command -v fastANI >/dev/null; then
       bin=fastANI
@@ -264,16 +264,6 @@ run_fastani() {
   measure fastani "$cfg" dist \
     "$bin" --ql "$GENOME_LIST" --rl "$GENOME_LIST" \
       -t "$THREADS" $FASTANI_ARGS -o "$dist"
-  echo "  -> $dist" >&2
-}
-
-run_anib() {
-  local cfg=default dist="$OUT/anib.default.dist.tsv"
-  command -v "$ANIB" >/dev/null || { echo "anib not found: $ANIB" >&2; return 1; }
-  echo "[anib/$cfg] dist ($NP pairs)" >&2
-  # shellcheck disable=SC2086
-  measure anib "$cfg" dist \
-    "$ANIB" $ANIB_ARGS "$GENOME_LIST" -o "$dist"
   echo "  -> $dist" >&2
 }
 
@@ -294,7 +284,6 @@ for m in "${METHODS[@]}"; do
     mash)     run_mash ;;
     gdiff)    run_gdiff ;;
     fastani)  run_fastani || rc=1 ;;
-    anib)     run_anib || rc=1 ;;
     *) echo "unknown method: $m (want: dashing2 skani mash gdiff fastani anib)" >&2; rc=1 ;;
   esac
 done
