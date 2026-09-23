@@ -1,0 +1,10 @@
+method	config	phase	threads	wall_sec	user_sec	sys_sec	maxrss_mib
+dashing2	v4	sketch	16	0.13	1.81	0.07	4.03516
+dashing2	v4	dist	16	0.02	0.09	0.03	8.04297
+skani	slow	sketch	16	0.06	0.67	0.17	24
+skani	slow	dist	16	0.21	2.48	0.22	128
+mash	sensitive	sketch	16	0.36	19.39	0.20	40.0117
+mash	sensitive	dist	16	0.23	16.84	0.08	57.4258
+gdiff	abcs	sketch	16	0.82	8.82	0.60	498.855
+gdiff	abcs	dist	16	4.98	63.76	0.69	377.797
+fastani	frag1000	dist	16	141.84	1819.58	8.97	1612.6

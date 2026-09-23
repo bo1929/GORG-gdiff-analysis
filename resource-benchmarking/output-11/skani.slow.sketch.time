@@ -1,0 +1,27 @@
+[00:00:00.000] (7948e8a43800) INFO   skani sketch -t 16 --slow --separate-sketches -l /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-11/genomes.list -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-11/skani.sketches
+[00:00:00.000] (7948e8a43800) INFO   Sketching files...
+[00:00:00.064] (7948e33f96c0) INFO   100 sequences sketched.
+[00:00:00.067] (7948e8a43800) INFO   Sketching time: 0.06713731
+	Command being timed: "skani sketch -t 16 --slow --separate-sketches -l /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-11/genomes.list -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-11/skani.sketches"
+	User time (seconds): 0.73
+	System time (seconds): 0.18
+	Percent of CPU this job got: 1176%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.07
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 12288
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 34260
+	Voluntary context switches: 452
+	Involuntary context switches: 9
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 99936
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

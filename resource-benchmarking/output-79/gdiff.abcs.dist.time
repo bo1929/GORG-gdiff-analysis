@@ -1,0 +1,30 @@
+gdiff version: v0.2.0-rc
+Invocation: /drive1/asapci/GORG-gdiff-analysis/bin/gdiff-x86 --num-threads 16 dist /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/gdiff.abcs.gdsk --hdist-th 3 -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/gdiff.abcs.dist.tsv
+Wed Sep 23 01:14:21 2026
+Comparing sketches and calculating distances...
+entries=100 within-mode a=100
+Done calculating distances, elapsed: 4.71213 sec
+Wed Sep 23 01:14:25 2026
+	Command being timed: "/drive1/asapci/GORG-gdiff-analysis/bin/gdiff --num-threads 16 dist /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/gdiff.abcs.gdsk --hdist-th 3 -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/gdiff.abcs.dist.tsv"
+	User time (seconds): 61.09
+	System time (seconds): 0.62
+	Percent of CPU this job got: 1303%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:04.73
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 444872
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 84525
+	Voluntary context switches: 2177
+	Involuntary context switches: 87
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1304
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

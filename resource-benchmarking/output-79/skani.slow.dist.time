@@ -1,0 +1,27 @@
+[00:00:00.000] (73f40bafe800) INFO   skani triangle -t 16 --slow --min-af 0 -l /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.sketch.list -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.slow.dist.tsv
+[00:00:00.000] (73f40bafe800) INFO   Sketches detected.
+[00:00:00.144] (73f40bafe800) INFO   Identity and align fraction matrix written to /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.slow.dist.tsv and /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.slow.dist.tsv.af
+[00:00:00.144] (73f40bafe800) INFO   ANI triangle time: 0.1448906
+	Command being timed: "skani triangle -t 16 --slow --min-af 0 -l /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.sketch.list -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-79/skani.slow.dist.tsv"
+	User time (seconds): 1.81
+	System time (seconds): 0.19
+	Percent of CPU this job got: 1168%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.17
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 126976
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 43670
+	Voluntary context switches: 1264
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 200
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

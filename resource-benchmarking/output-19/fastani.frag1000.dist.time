@@ -1,0 +1,356 @@
+>>>>>>>>>>>>>>>>>>
+Reference = [/drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-313-D08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-319-M14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-325-I09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-333-A04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-333-D08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-337-G21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-359-C09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-359-F04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-365-P03_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-D05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-D15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-G23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-I17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-M02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-N04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-O04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-F06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-O18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-P20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-414-E06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-422-A21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-422-N14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-F10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-I10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-I21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-J10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-L19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-430-K19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-439-G19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-K09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-K11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-L07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-N08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-453-K22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-461-B21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-461-L09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-470-D16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-I18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-O15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-P20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-892-M06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-893-K09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-893-M20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-B07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-C10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-E10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-G18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-K14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-L17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-N05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-O04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-895-B19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-895-E07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-A16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-M10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-O18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-G09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-G15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-O11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-898-J17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-899-G02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-899-J02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-900-K16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-901-D23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-901-E23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-903-I23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-904-K03_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-905-M05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-907-I19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-907-M07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-908-F18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-908-I10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-D18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-E05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-G14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-I02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-L17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-912-F23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-912-G22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-913-N02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-914-J05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-915-E06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-A19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-D16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-L20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-M06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-917-K20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-L07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-M20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-P10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-C22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-F21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-J11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-920-I06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-287-E19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-287-L13_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-D13_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-G15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-N11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-324-M03_contigs.fasta]
+Query = [/drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-313-D08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-319-M14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-325-I09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-333-A04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-333-D08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-337-G21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-359-C09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-359-F04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-365-P03_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-D05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-D15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-G23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-I17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-M02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-N04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-390-O04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-F06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-O18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-404-P20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-414-E06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-422-A21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-422-N14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-F10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-I10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-I21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-J10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-426-L19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-430-K19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-439-G19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-K09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-K11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-L07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-447-N08_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-453-K22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-461-B21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-461-L09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-470-D16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-I18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-O15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-891-P20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-892-M06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-893-K09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-893-M20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-B07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-C10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-E10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-G18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-K14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-L17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-N05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-894-O04_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-895-B19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-895-E07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-A16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-M10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-896-O18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-G09_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-G15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-897-O11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-898-J17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-899-G02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-899-J02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-900-K16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-901-D23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-901-E23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-903-I23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-904-K03_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-905-M05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-907-I19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-907-M07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-908-F18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-908-I10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-D18_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-E05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-G14_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-I02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-911-L17_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-912-F23_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-912-G22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-913-N02_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-914-J05_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-915-E06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-A19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-D16_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-L20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-916-M06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-917-K20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-L07_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-M20_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-918-P10_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-C22_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-F21_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-919-J11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AG-920-I06_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-287-E19_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-287-L13_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-D13_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-G15_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-321-N11_contigs.fasta, /drive1/asapci/GORG-gdiff-analysis/contigs-gt80-complete/AH-324-M03_contigs.fasta]
+Kmer size = 16
+Fragment length = 1000
+Threads = 16
+ANI output file = /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-19/fastani.frag1000.dist.tsv
+Sanity Check  = 0
+>>>>>>>>>>>>>>>>>>
+INFO [thread 0], skch::main, Count of threads executing parallel_for : 16
+INFO [thread 0], skch::Sketch::build, window size for minimizer sampling  = 13
+INFO [thread 0], skch::Sketch::build, minimizers picked from reference = 1306718
+INFO [thread 0], skch::Sketch::index, unique minimizers = 1252172
+INFO [thread 0], skch::Sketch::computeFreqHist, Frequency histogram of minimizers = (1, 1209331) ... (34, 1)
+INFO [thread 0], skch::Sketch::computeFreqHist, consider all minimizers during lookup.
+INFO [thread 0], skch::main, Time spent sketching the reference : 1.192 sec
+INFO [thread 0], skch::main, Start Map 1
+INFO [thread 0], skch::main, Time spent mapping fragments in query #1 : 0.824112 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.000925691 sec
+INFO [thread 0], skch::main, Start Map 2
+INFO [thread 0], skch::main, Time spent mapping fragments in query #2 : 1.44585 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00176329 sec
+INFO [thread 0], skch::main, Start Map 3
+INFO [thread 0], skch::main, Time spent mapping fragments in query #3 : 1.11268 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00139976 sec
+INFO [thread 0], skch::main, Start Map 4
+INFO [thread 0], skch::main, Time spent mapping fragments in query #4 : 1.55199 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00189678 sec
+INFO [thread 0], skch::main, Start Map 5
+INFO [thread 0], skch::main, Time spent mapping fragments in query #5 : 1.25708 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00151446 sec
+INFO [thread 0], skch::main, Start Map 6
+INFO [thread 0], skch::main, Time spent mapping fragments in query #6 : 1.10449 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00133017 sec
+INFO [thread 0], skch::main, Start Map 7
+INFO [thread 0], skch::main, Time spent mapping fragments in query #7 : 1.30784 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00164163 sec
+INFO [thread 0], skch::main, Start Map 8
+INFO [thread 0], skch::main, Time spent mapping fragments in query #8 : 1.55733 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00190258 sec
+INFO [thread 0], skch::main, Start Map 9
+INFO [thread 0], skch::main, Time spent mapping fragments in query #9 : 1.48857 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00189298 sec
+INFO [thread 0], skch::main, Start Map 10
+INFO [thread 0], skch::main, Time spent mapping fragments in query #10 : 1.28128 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00155736 sec
+INFO [thread 0], skch::main, Start Map 11
+INFO [thread 0], skch::main, Time spent mapping fragments in query #11 : 1.37256 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0016843 sec
+INFO [thread 0], skch::main, Start Map 12
+INFO [thread 0], skch::main, Time spent mapping fragments in query #12 : 1.56678 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0019107 sec
+INFO [thread 0], skch::main, Start Map 13
+INFO [thread 0], skch::main, Time spent mapping fragments in query #13 : 1.25508 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00151786 sec
+INFO [thread 0], skch::main, Start Map 14
+INFO [thread 0], skch::main, Time spent mapping fragments in query #14 : 1.15584 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00142113 sec
+INFO [thread 0], skch::main, Start Map 15
+INFO [thread 0], skch::main, Time spent mapping fragments in query #15 : 0.843692 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00106695 sec
+INFO [thread 0], skch::main, Start Map 16
+INFO [thread 0], skch::main, Time spent mapping fragments in query #16 : 1.39927 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00165529 sec
+INFO [thread 0], skch::main, Start Map 17
+INFO [thread 0], skch::main, Time spent mapping fragments in query #17 : 1.30244 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00157649 sec
+INFO [thread 0], skch::main, Start Map 18
+INFO [thread 0], skch::main, Time spent mapping fragments in query #18 : 1.44902 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00173042 sec
+INFO [thread 0], skch::main, Start Map 19
+INFO [thread 0], skch::main, Time spent mapping fragments in query #19 : 1.44999 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00172594 sec
+INFO [thread 0], skch::main, Start Map 20
+INFO [thread 0], skch::main, Time spent mapping fragments in query #20 : 1.49067 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00180571 sec
+INFO [thread 0], skch::main, Start Map 21
+INFO [thread 0], skch::main, Time spent mapping fragments in query #21 : 1.10914 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00135003 sec
+INFO [thread 0], skch::main, Start Map 22
+INFO [thread 0], skch::main, Time spent mapping fragments in query #22 : 1.31436 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00162225 sec
+INFO [thread 0], skch::main, Start Map 23
+INFO [thread 0], skch::main, Time spent mapping fragments in query #23 : 1.23308 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00151841 sec
+INFO [thread 0], skch::main, Start Map 24
+INFO [thread 0], skch::main, Time spent mapping fragments in query #24 : 1.50157 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00179365 sec
+INFO [thread 0], skch::main, Start Map 25
+INFO [thread 0], skch::main, Time spent mapping fragments in query #25 : 0.795147 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00100071 sec
+INFO [thread 0], skch::main, Start Map 26
+INFO [thread 0], skch::main, Time spent mapping fragments in query #26 : 1.50848 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00187392 sec
+INFO [thread 0], skch::main, Start Map 27
+INFO [thread 0], skch::main, Time spent mapping fragments in query #27 : 1.12434 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00139868 sec
+INFO [thread 0], skch::main, Start Map 28
+INFO [thread 0], skch::main, Time spent mapping fragments in query #28 : 1.18301 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00144328 sec
+INFO [thread 0], skch::main, Start Map 29
+INFO [thread 0], skch::main, Time spent mapping fragments in query #29 : 1.4402 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0017094 sec
+INFO [thread 0], skch::main, Start Map 30
+INFO [thread 0], skch::main, Time spent mapping fragments in query #30 : 1.53703 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00181544 sec
+INFO [thread 0], skch::main, Start Map 31
+INFO [thread 0], skch::main, Time spent mapping fragments in query #31 : 1.44477 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00177893 sec
+INFO [thread 0], skch::main, Start Map 32
+INFO [thread 0], skch::main, Time spent mapping fragments in query #32 : 1.38411 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00167323 sec
+INFO [thread 0], skch::main, Start Map 33
+INFO [thread 0], skch::main, Time spent mapping fragments in query #33 : 1.61118 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00180206 sec
+INFO [thread 0], skch::main, Start Map 34
+INFO [thread 0], skch::main, Time spent mapping fragments in query #34 : 1.10692 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00135999 sec
+INFO [thread 0], skch::main, Start Map 35
+INFO [thread 0], skch::main, Time spent mapping fragments in query #35 : 0.981451 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0011642 sec
+INFO [thread 0], skch::main, Start Map 36
+INFO [thread 0], skch::main, Time spent mapping fragments in query #36 : 1.48717 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00187074 sec
+INFO [thread 0], skch::main, Start Map 37
+INFO [thread 0], skch::main, Time spent mapping fragments in query #37 : 1.41718 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00168343 sec
+INFO [thread 0], skch::main, Start Map 38
+INFO [thread 0], skch::main, Time spent mapping fragments in query #38 : 1.68106 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00213936 sec
+INFO [thread 0], skch::main, Start Map 39
+INFO [thread 0], skch::main, Time spent mapping fragments in query #39 : 1.29071 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00155619 sec
+INFO [thread 0], skch::main, Start Map 40
+INFO [thread 0], skch::main, Time spent mapping fragments in query #40 : 1.47842 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00183755 sec
+INFO [thread 0], skch::main, Start Map 41
+INFO [thread 0], skch::main, Time spent mapping fragments in query #41 : 0.815855 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00103424 sec
+INFO [thread 0], skch::main, Start Map 42
+INFO [thread 0], skch::main, Time spent mapping fragments in query #42 : 1.39341 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00171618 sec
+INFO [thread 0], skch::main, Start Map 43
+INFO [thread 0], skch::main, Time spent mapping fragments in query #43 : 1.50919 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00186355 sec
+INFO [thread 0], skch::main, Start Map 44
+INFO [thread 0], skch::main, Time spent mapping fragments in query #44 : 1.3039 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00156457 sec
+INFO [thread 0], skch::main, Start Map 45
+INFO [thread 0], skch::main, Time spent mapping fragments in query #45 : 1.16899 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00142082 sec
+INFO [thread 0], skch::main, Start Map 46
+INFO [thread 0], skch::main, Time spent mapping fragments in query #46 : 1.39695 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00170523 sec
+INFO [thread 0], skch::main, Start Map 47
+INFO [thread 0], skch::main, Time spent mapping fragments in query #47 : 1.17572 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00143191 sec
+INFO [thread 0], skch::main, Start Map 48
+INFO [thread 0], skch::main, Time spent mapping fragments in query #48 : 1.30027 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00159899 sec
+INFO [thread 0], skch::main, Start Map 49
+INFO [thread 0], skch::main, Time spent mapping fragments in query #49 : 1.53741 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00182384 sec
+INFO [thread 0], skch::main, Start Map 50
+INFO [thread 0], skch::main, Time spent mapping fragments in query #50 : 1.04295 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00131266 sec
+INFO [thread 0], skch::main, Start Map 51
+INFO [thread 0], skch::main, Time spent mapping fragments in query #51 : 1.33955 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00158993 sec
+INFO [thread 0], skch::main, Start Map 52
+INFO [thread 0], skch::main, Time spent mapping fragments in query #52 : 1.30525 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0015869 sec
+INFO [thread 0], skch::main, Start Map 53
+INFO [thread 0], skch::main, Time spent mapping fragments in query #53 : 1.12773 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00133312 sec
+INFO [thread 0], skch::main, Start Map 54
+INFO [thread 0], skch::main, Time spent mapping fragments in query #54 : 1.29279 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00161381 sec
+INFO [thread 0], skch::main, Start Map 55
+INFO [thread 0], skch::main, Time spent mapping fragments in query #55 : 1.39757 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00167302 sec
+INFO [thread 0], skch::main, Start Map 56
+INFO [thread 0], skch::main, Time spent mapping fragments in query #56 : 1.57168 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00188117 sec
+INFO [thread 0], skch::main, Start Map 57
+INFO [thread 0], skch::main, Time spent mapping fragments in query #57 : 1.4765 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00180959 sec
+INFO [thread 0], skch::main, Start Map 58
+INFO [thread 0], skch::main, Time spent mapping fragments in query #58 : 1.24339 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00152054 sec
+INFO [thread 0], skch::main, Start Map 59
+INFO [thread 0], skch::main, Time spent mapping fragments in query #59 : 1.40494 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00164398 sec
+INFO [thread 0], skch::main, Start Map 60
+INFO [thread 0], skch::main, Time spent mapping fragments in query #60 : 0.615972 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.000696521 sec
+INFO [thread 0], skch::main, Start Map 61
+INFO [thread 0], skch::main, Time spent mapping fragments in query #61 : 1.13788 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00137726 sec
+INFO [thread 0], skch::main, Start Map 62
+INFO [thread 0], skch::main, Time spent mapping fragments in query #62 : 1.40671 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00170874 sec
+INFO [thread 0], skch::main, Start Map 63
+INFO [thread 0], skch::main, Time spent mapping fragments in query #63 : 0.943093 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00119268 sec
+INFO [thread 0], skch::main, Start Map 64
+INFO [thread 0], skch::main, Time spent mapping fragments in query #64 : 0.983997 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00126009 sec
+INFO [thread 0], skch::main, Start Map 65
+INFO [thread 0], skch::main, Time spent mapping fragments in query #65 : 1.31927 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00148674 sec
+INFO [thread 0], skch::main, Start Map 66
+INFO [thread 0], skch::main, Time spent mapping fragments in query #66 : 1.06942 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00127016 sec
+INFO [thread 0], skch::main, Start Map 67
+INFO [thread 0], skch::main, Time spent mapping fragments in query #67 : 1.63294 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00196022 sec
+INFO [thread 0], skch::main, Start Map 68
+INFO [thread 0], skch::main, Time spent mapping fragments in query #68 : 1.43111 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00175525 sec
+INFO [thread 0], skch::main, Start Map 69
+INFO [thread 0], skch::main, Time spent mapping fragments in query #69 : 1.26726 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00152074 sec
+INFO [thread 0], skch::main, Start Map 70
+INFO [thread 0], skch::main, Time spent mapping fragments in query #70 : 1.21873 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00150403 sec
+INFO [thread 0], skch::main, Start Map 71
+INFO [thread 0], skch::main, Time spent mapping fragments in query #71 : 1.33858 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00161411 sec
+INFO [thread 0], skch::main, Start Map 72
+INFO [thread 0], skch::main, Time spent mapping fragments in query #72 : 1.15337 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00143969 sec
+INFO [thread 0], skch::main, Start Map 73
+INFO [thread 0], skch::main, Time spent mapping fragments in query #73 : 1.19275 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00144149 sec
+INFO [thread 0], skch::main, Start Map 74
+INFO [thread 0], skch::main, Time spent mapping fragments in query #74 : 1.10281 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00131502 sec
+INFO [thread 0], skch::main, Start Map 75
+INFO [thread 0], skch::main, Time spent mapping fragments in query #75 : 0.580463 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.000699251 sec
+INFO [thread 0], skch::main, Start Map 76
+INFO [thread 0], skch::main, Time spent mapping fragments in query #76 : 1.02066 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00125617 sec
+INFO [thread 0], skch::main, Start Map 77
+INFO [thread 0], skch::main, Time spent mapping fragments in query #77 : 1.25217 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00155468 sec
+INFO [thread 0], skch::main, Start Map 78
+INFO [thread 0], skch::main, Time spent mapping fragments in query #78 : 1.17563 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00137145 sec
+INFO [thread 0], skch::main, Start Map 79
+INFO [thread 0], skch::main, Time spent mapping fragments in query #79 : 1.38497 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00168118 sec
+INFO [thread 0], skch::main, Start Map 80
+INFO [thread 0], skch::main, Time spent mapping fragments in query #80 : 0.955421 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00113629 sec
+INFO [thread 0], skch::main, Start Map 81
+INFO [thread 0], skch::main, Time spent mapping fragments in query #81 : 1.30479 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.0015037 sec
+INFO [thread 0], skch::main, Start Map 82
+INFO [thread 0], skch::main, Time spent mapping fragments in query #82 : 1.17398 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00145787 sec
+INFO [thread 0], skch::main, Start Map 83
+INFO [thread 0], skch::main, Time spent mapping fragments in query #83 : 1.28453 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00164696 sec
+INFO [thread 0], skch::main, Start Map 84
+INFO [thread 14], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #84 : 1.21045 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00147981 sec
+INFO [thread 0], skch::main, Start Map 85
+INFO [thread 8], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #85 : 1.11595 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00135467 sec
+INFO [thread 0], skch::main, Start Map 86
+INFO [thread 10], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #86 : 1.15929 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00145541 sec
+INFO [thread 0], skch::main, Start Map 87
+INFO [thread 11], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #87 : 1.24739 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00154381 sec
+INFO [thread 0], skch::main, Start Map 88
+INFO [thread 0], skch::main, Time spent mapping fragments in query #88 : 1.41433 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00175466 sec
+INFO [thread 0], skch::main, Start Map 89
+INFO [thread 4], skch::main, ready to exit the loop
+INFO [thread 12], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #89 : 1.06941 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00131391 sec
+INFO [thread 0], skch::main, Start Map 90
+INFO [thread 0], skch::main, Time spent mapping fragments in query #90 : 1.35858 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00162796 sec
+INFO [thread 0], skch::main, Start Map 91
+INFO [thread 0], skch::main, Time spent mapping fragments in query #91 : 0.972888 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00119106 sec
+INFO [thread 0], skch::main, Start Map 92
+INFO [thread 15], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #92 : 1.29141 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00155252 sec
+INFO [thread 0], skch::main, Start Map 93
+INFO [thread 0], skch::main, Time spent mapping fragments in query #93 : 1.04165 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00131621 sec
+INFO [thread 0], skch::main, Start Map 94
+INFO [thread 0], skch::main, Time spent mapping fragments in query #94 : 1.19424 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00145802 sec
+INFO [thread 0], skch::main, Start Map 95
+INFO [thread 0], skch::main, Time spent mapping fragments in query #95 : 1.10446 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00130799 sec
+INFO [thread 0], skch::main, Start Map 96
+INFO [thread 6], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #96 : 1.47169 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00193 sec
+INFO [thread 0], skch::main, Start Map 97
+INFO [thread 0], skch::main, Time spent mapping fragments in query #97 : 1.37662 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00166495 sec
+INFO [thread 0], skch::main, Start Map 98
+INFO [thread 9], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #98 : 1.07942 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00131423 sec
+INFO [thread 0], skch::main, Start Map 99
+INFO [thread 13], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #99 : 1.28177 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.00156171 sec
+INFO [thread 0], skch::main, Start Map 100
+INFO [thread 5], skch::main, ready to exit the loop
+INFO [thread 0], skch::main, Time spent mapping fragments in query #100 : 0.584953 sec
+INFO [thread 0], skch::main, Time spent post mapping : 0.000738031 sec
+INFO [thread 0], skch::main, ready to exit the loop
+INFO [thread 1], skch::main, ready to exit the loop
+INFO [thread 7], skch::main, ready to exit the loop
+INFO [thread 2], skch::main, ready to exit the loop
+INFO [thread 3], skch::main, ready to exit the loop
+INFO, skch::main, parallel_for execution finished
+	Command being timed: "fastANI --ql /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-19/genomes.list --rl /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-19/genomes.list -t 16 --fragLen 1000 --minFraction 0.1 -o /drive1/asapci/GORG-gdiff-analysis/resource-benchmarking/output-19/fastani.frag1000.dist.tsv"
+	User time (seconds): 1965.64
+	System time (seconds): 8.46
+	Percent of CPU this job got: 1385%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:22.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1634796
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1285611
+	Voluntary context switches: 9225
+	Involuntary context switches: 1412
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 3648
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
