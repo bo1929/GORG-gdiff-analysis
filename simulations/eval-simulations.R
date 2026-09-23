@@ -153,7 +153,7 @@ df %>%
   facet_wrap(~ratevar) +
   aes(fill=z, y=true_ani_bin, x=method) +
   geom_tile() +
-  geom_label(aes(label=round(z, 4), color=z<0.0004), show.legend = F) +
+  geom_label(aes(label=round(z, 4), color=z<0.0005), show.legend = F) +
   labs(fill=TeX(r'(${\hat{D}-D}$)'), x="Method", y=TeX(r'(D)')) +
   # geom_abline(linetype="dashed") +
   theme_cowplot(font_size = 10) +

@@ -21,11 +21,12 @@ df_r <- rbind(
     select(method, genome_a, genome_b, ani_est = ani_pct) %>% mutate(distance = 1-ani_est/100),
   vroom("results/ani-comparison/mash-estimates-all/distances/mash-sensitive.tsv.gz") %>%
     select(method, genome_a, genome_b, ani_est = ani_pct, distance),
-  vroom("results/ani-comparison/skani-estimates-all/distances/skani-sensitive.tsv.gz") %>%
+  vroom("results/ani-comparison/skani-estimates-all/distances/skani-slow.tsv.gz") %>%
     select(method, genome_a, genome_b, ani_est = ani_pct) %>% mutate(distance = 1-ani_est/100),
-  vroom("results/ani-comparison/fastani-estimates-all/distances/fastani-frag3000.tsv.gz") %>%
+  vroom("results/ani-comparison/fastani-estimates-all/distances/fastani-frag1000.tsv.gz") %>%
     select(method, genome_a, genome_b, ani_est = ani_pct) %>% mutate(distance = 1-ani_est/100),
-  vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-abcs-p01-min66.tsv.gz") %>%
+  vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h9-l500-n1000-frac50-chisq10828-p66.tsv") %>%
+  # vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h9-l333-n1000-frac50-chisq06635-p66.tsv") %>%
     select(genome_a, genome_b, distance) %>% mutate(method = "gdiff", ani_est = (1-distance)*100)
 ) %>% mutate(genome_x = if_else(genome_a > genome_b, genome_b, genome_a)) %>%
   mutate(genome_y = if_else(genome_a > genome_b, genome_a, genome_b)) %>%
@@ -33,62 +34,91 @@ df_r <- rbind(
 df_r <- df_r %>% group_by(genome_a, genome_b, method) %>% summarise(ani_est=mean(ani_est, na.rm = T), distance=mean(distance, na.rm = T))
 df <- merge(df_r, df_meta) %>% mutate(d_true = 1 - ani_true/100) %>% rename(d_est = distance)
 
-df %>% # filter(ani_true != 100) %>%
+df %>% filter(ani_true < 99) %>%
+  mutate(ani_bin=cut(1-ani_true/100, breaks = c(0, 0.01, 0.05, 0.15, 0.25, 0.4), include.lowest = TRUE)) %>%
   ggplot() +
   # aes(x=ani_bin, fill=method, y=d_est/d_true, color=method) +
-  # aes(x=ani_bin, fill=method, y=(100-ani_est)/(100-ani_true), color=method) +
-  aes(x=ani_bin, fill=method, y=((100-ani_est)-(100-ani_true))/(100-ani_true), color=method) +
+  aes(x=ani_bin, fill=method, y=(100-ani_est)/(100-ani_true)-1, color=method) +
+  # aes(x=ani_bin, fill=method, y=((100-ani_est)-(100-ani_true))/(100-ani_true), color=method) +
   geom_boxplot(outliers = F, outlier.size = 0.6, position = position_dodge(0.8), color = "grey10") +
   # stat_summary(aes(group=method), geom="line") +
   # stat_summary(aes(group=method)) +
-  facet_wrap(~ani_bin, scale="free") +
-  # geom_hline(yintercept = 1) +
+  # facet_wrap(~ani_bin, scale="free") +
+  geom_hline(yintercept = 0, linetype=2) +
   # coord_cartesian(ylim = c(0.95, 1.15)) +
   # scale_y_log10() +
-  theme_bw() + labs(x="ANIb", y=TeX(r'(Error)'), title="251,534 pairs from GORG") +
+  theme_bw() + labs(x="ANIb", y=TeX(r'(Error (%))'), title="251,534 pairs from GORG") +
   scale_fill_manual(values = mc) +
   scale_color_manual(values = mc) + scale_y_continuous(labels=percent)
 
-df %>% # filter(ani_true != 100) %>%
+df %>%
+  filter(ani_true > 99) %>%
+  mutate(ani_bin = cut((100-ani_true)/100, c(0, 0.001, 0.005, 0.01), include.lowest = T)) %>%
+  group_by(ani_bin, method) %>%
+  summarize(z=mean(abs((100-ani_true)-(100-ani_est))/100)) %>%
+  ggplot() +
+  aes(fill=z, y=ani_bin, x=method) +
+  geom_tile() +
+  geom_label(aes(label=round(z, 4), color=z<0.005), show.legend = F) +
+  labs(fill=TeX(r'(${\hat{D}-D_{ANIb}}$)'), x="Method", y=TeX(r'(${D_{ANIb}$})')) +
+  # geom_abline(linetype="dashed") +
+  theme_cowplot(font_size = 10) +
+  scale_fill_viridis_c(option = "B", limits = c(0, 0.01)) +
+  scale_color_manual(values = c("black", "white")) +
+  theme(axis.text.x.bottom = element_text(angle=0.45), legend.title = element_text(vjust=2))
+
+df %>% filter(ani_true < 99) %>%
+  # mutate(ani_bin = cut(ani_true, c(60, 75, 90, 95, 99))) %>%
+  mutate(ani_bin=cut(1-ani_true/100, breaks = c(0, 0.01, 0.05, 0.15, 0.25, 0.4), include.lowest = TRUE)) %>%
   ggplot() +
   # aes(x=ani_bin, fill=method, y=d_est/d_true, color=method) +
   # aes(x=ani_bin, fill=method, y=(100-ani_est)/(100-ani_true), color=method) +
-  aes(x=ani_bin, fill=method, y=((100-ani_est)-(100-ani_true))/(100-ani_true), color=method) +
-  geom_violin(outliers = F, outlier.size = 0.6, position = position_dodge(0.8), color = "grey10") +
+  aes(x=method, fill=method, y=((100-ani_est)-(100-ani_true))/(100-ani_true), color=method) +
+  geom_violin(outliers = F, trim = T, scale = "width", outlier.size = 0.2, color = "grey10") +
   # stat_summary(aes(group=method), geom="line") +
-  # stat_summary(aes(group=method)) +
-  facet_wrap(~ani_bin, scale="free") +
-  # geom_hline(yintercept = 1) +
+  stat_summary(color="black") +
+  facet_wrap(~ani_bin, scale="free", nrow=1) +
+  geom_hline(yintercept = 0, linetype="dashed") +
   # coord_cartesian(ylim = c(0.95, 1.15)) +
   # scale_y_log10() +
   theme_bw() + labs(x="ANIb", y=TeX(r'(Error)'), title="251,534 pairs from GORG") +
   scale_color_manual(values = mc) + scale_y_continuous(labels=percent) +
-  scale_fill_manual(values = mc)
+  scale_fill_manual(values = mc) + theme(axis.text.x = element_blank()) +
+  labs(x="", fill="color") + coord_cartesian(ylim = c(-0.60, 0.60)) 
 
 ggscatter(
-  df %>% filter(ani_true > 95),
+  df %>% filter(ani_true > 90),
   x = "ani_true", y = "ani_est", color = "method",
   add = "reg.line", alpha=0.05, conf.int = TRUE
   ) +
-  stat_cor(aes(color = method), method = "pearson") +
+  stat_cor(aes(color = method), method = "pearson", show.legend = F) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc) +
   geom_abline(linewidth=2, alpha=1, linetype="dashed") +
-  coord_cartesian(x=c(95, 100), y=c(95, 100))
+  coord_cartesian(x=c(90, 100), y=c(90, 100)) +
+  labs(x="ANIb", y=TeX(r'(${\hat{ANI}}$)'))
 
-df %>% filter(ani_true <= 99.9) %>%
+df %>% filter(ani_true > 90) %>% ggplot() +
+  aes(x=ani_true, y=ani_est, color=method) +
+  stat_cor(method = "pearson", show.legend = F) +
+  geom_point(alpha=0.05) +
+  stat_smooth(method = "lm", linewidth=1.5) +
+  geom_abline(linewidth=1, alpha=1, linetype="dashed") +
+  scale_color_manual(values = mc) +
+  scale_fill_manual(values = mc) +
+  theme_bw() +
+  labs(x="ANIb", y=TeX(r'(${\hat{ANI}}$)'))
+
+df %>% filter(ani_true < 99) %>%
+  mutate(ani_bin=cut(1-ani_true/100, breaks = c(0, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4), include.lowest = TRUE)) %>%
   ggplot() +
-  # aes(x=ani_bin, fill=method, y=d_est/d_true, color=method) +
-  aes(x=ani_bin, y=(100-ani_est)/(100-ani_true), color=method) +
-  # geom_boxplot(outliers = F, outlier.size = 0.6, position = position_dodge(0.8), color = "grey10") +
+  aes(x=ani_bin, y=(100-ani_est)/(100-ani_true)-1, color=method) +
   stat_summary(aes(group=method), geom="line") +
   stat_summary(aes(group=method)) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
-  # facet_wrap(~ani_bin, scale="free") +
-  geom_hline(yintercept = 1) +
-  # coord_cartesian(ylim = c(0.95, 1.15)) +
-  scale_y_log10() +
-  theme_bw() + labs(x="ANIb", y=TeX(r'($\frac{100-\hat{ANI}}{100-{ANIb}}$)'), title="251,534 pairs from GORG") +
+  geom_hline(yintercept = 0, linetype="dashed") +
+  theme_bw() +
+  labs(x=TeX(r'($D_{ANIb})'), y=TeX(r'(Error (%))'), title="251,534 pairs from GORG", color="Method") +
   scale_fill_manual(values = mc) +
   scale_color_manual(values = mc)
 
@@ -119,7 +149,7 @@ df %>%
   # stat_smooth(aes(group=method), m) +
   theme_bw() + labs(x="ANIb", y="Pairs with an estimate", title="251,534 pairs from GORG") +
   scale_color_manual(values = mc) +
-  scale_linetype_manual(values = c(1, 1, 1, 2, 1)) +
+  scale_linetype_manual(values = c(1, 1, 2, 3, 1)) +
   scale_y_continuous(labels = percent)
 
 # dashing2 configuration comparison
@@ -220,31 +250,27 @@ if (T) {
 # gdiff configuration comparison
 if (T) {
   df_gdiff <- rbind(
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-fgh-p0001-min66.tsv.gz") %>% mutate(method="fgh-p0001-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-fgh-p001-min66.tsv.gz") %>% mutate(method="fgh-p001-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-fgh-p01-min66.tsv.gz") %>% mutate(method="fgh-p01-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-fgh-p05-min66.tsv.gz") %>% mutate(method="fgh-p05-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-abcs-p001-min66.tsv.gz") %>% mutate(method="abcs-p001-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-abcs-p01-min50.tsv.gz") %>% mutate(method="abcs-p01-min50"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-abcs-p01-min66.tsv.gz") %>% mutate(method="abcs-p01-min66"),
-    vroom("results/ani-comparison/gdiff-estimates-all/distances/gdiff-abcs-p05-min66.tsv.gz") %>% mutate(method="abcs-p05-min66")
-  ) %>% select(method, genome_a, genome_b, distance) %>% mutate(ani_est = 100-distance*100) %>% mutate(genome_x = if_else(genome_a > genome_b, genome_b, genome_a)) %>%
+    vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h10-l500-n1000-frac50-chisq06635-p66.tsv") %>% mutate(method="k23-w23-h10-l500-n1000-frac50"),
+    vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h11-l500-n1000-frac50-chisq03841-p66.tsv") %>% mutate(method="k23-w23-h11-l500-n1000-frac50"),
+    vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h9-l333-n1000-frac50-chisq06635-p66.tsv") %>% mutate(method="k23-w23-h9-l333-n1000-frac50"),
+    vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h9-l500-n1000-frac33-chisq10828-p66.tsv") %>% mutate(method="k23-w23-h9-l500-n1000-frac33"),
+    vroom("results/ani-comparison/gdiff-estimates/distances/gdiff-k23-w23-h9-l500-n1000-frac50-chisq10828-p66.tsv") %>% mutate(method="k23-w23-h9-l500-n1000-frac50")
+    ) %>% select(method, genome_a, genome_b, distance) %>% mutate(ani_est = 100-distance*100) %>% mutate(genome_x = if_else(genome_a > genome_b, genome_b, genome_a)) %>%
     mutate(genome_y = if_else(genome_a > genome_b, genome_a, genome_b)) %>%
     select(!c(genome_a, genome_b)) %>% rename(genome_a = genome_x, genome_b = genome_y)
   df_gdiff <- df_gdiff %>% group_by(genome_a, genome_b, method) %>% summarise(ani_est=mean(ani_est, na.rm = T), distance=mean(distance, na.rm = T))
   df_gdiff <- merge(df_gdiff, df_meta) %>% mutate(d_true = 1 - ani_true/100) %>% rename(d_est = distance)
-  df_gdiff %>%
+  df_gdiff %>% filter(ani_true < 99) %>%
     ggplot() +
-    aes(x=reorder(method, abs(1-ani_est/ani_true)), fill=method, y=ani_est/ani_true) +
-    facet_wrap(~ani_bin, scale="free") +
-    # stat_summary(aes(group=method, color=method), geom="line") +
-    geom_boxplot(color="gray20", outliers = F) +
-    # stat_summary(aes(color=method), fun.data = mean_se, geom = "errorbar", width = 0.2) +
-    geom_hline(yintercept = 1) +
+    aes(x=ani_bin, fill=method, y=(100-ani_est)/(100-ani_true)-1) +
+    # facet_wrap(~ani_bin, scale="free") +
+    stat_summary(aes(group=method, color=method), geom="line") +
+    # geom_boxplot(color="gray20", outliers = F) +
+    stat_summary(aes(color=method), fun.data = mean_se, geom = "errorbar", width = 0.2) +
+    geom_hline(yintercept = 0) +
     # coord_cartesian(ylim = c(0.9, 1.2)) +
     theme_bw() +
     labs(x="ANIb", y=TeX(r'(${\hat{ANI}}/{{ANIb}}$)'), title="251,534 pairs from GORG") +
-    # scale_color_brewer(palette="Set1") +
-    scale_fill_brewer(palette="Set1") +
-    scale_x_discrete(guide = "none")
+    scale_color_brewer(palette="Set1") +
+    scale_fill_brewer(palette="Set1")
 }
