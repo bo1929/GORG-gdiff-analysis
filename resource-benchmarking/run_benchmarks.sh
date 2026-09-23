@@ -10,28 +10,27 @@ REPO="$(cd "$HERE/.." && pwd)"
 # ---- defaults (edit these) ------------------------------------------------
 THREADS=16
 SAMPLE_N=100
-SEED=79
+SEED=11
 FORCE=1 # 1 = redraw sample and redo selected methods
 
 PAIRS_TSV="$REPO/all_pairs.tsv"
 GENOME_DIR="$REPO/contigs-gt80-complete"
 GENOME_SUFFIX="_contigs.fasta"
-OUT="$HERE/output"
+OUT="$HERE/output-$SEED"
 
 DASHING2="$REPO/bin/dashing2"
-# GDIFF="$REPO/bin/gdiff"
-GDIFF="../../gdiff/gdiff"
+GDIFF="$REPO/bin/gdiff"
+# GDIFF="../../gdiff/gdiff"
 MASH=mash
 SKANI=skani
-FASTANI=fastani # also accepts fastANI
-ANIB=anib
+FASTANI=fastANI # also accepts fastANI
 
 DASHING2_ARGS="--symmetric-containment -k 23 -S 2048"
 SKANI_ARGS="--slow"
-GDIFF_SKETCH_ARGS="-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000"
+GDIFF_SKETCH_ARGS="-k 23 -w 23 --frac 0.5 -l 333 --sample-size 1000"
 GDIFF_DIST_ARGS="--hdist-th 3"
 MASH_ARGS="-k 19 -s 10000"
-FASTANI_ARGS="--fragLen 3000 --minFraction 0.1"
+FASTANI_ARGS="--fragLen 1000 --minFraction 0.1"
 
 METHODS=(dashing2 skani mash gdiff fastani)
 # --------------------------------------------------------------------------
@@ -250,7 +249,7 @@ run_mash() {
 }
 
 run_fastani() {
-  local cfg=frag3000 dist="$OUT/fastani.frag3000.dist.tsv" bin="$FASTANI"
+  local cfg=frag1000 dist="$OUT/fastani.frag1000.dist.tsv" bin="$FASTANI"
   if ! command -v "$bin" >/dev/null; then
     if [ "$bin" = "fastani" ] && command -v fastANI >/dev/null; then
       bin=fastANI
@@ -284,7 +283,7 @@ for m in "${METHODS[@]}"; do
     mash)     run_mash ;;
     gdiff)    run_gdiff ;;
     fastani)  run_fastani || rc=1 ;;
-    *) echo "unknown method: $m (want: dashing2 skani mash gdiff fastani anib)" >&2; rc=1 ;;
+    *) echo "unknown method: $m (want: dashing2 skani mash gdiff fastani)" >&2; rc=1 ;;
   esac
 done
 

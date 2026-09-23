@@ -27,17 +27,16 @@ SAMP_DIR="$OUT/samples"; mkdir -p "$SAMP_DIR"
 DIST_DIR="$OUT/distances"; mkdir -p "$DIST_DIR"
 # bin/gdiff dispatches to the bundled build for this OS/arch.
 gdiff="${gdiff:-$REPO_ROOT/bin/gdiff}"
-JOBS="${JOBS:-${THREADS:-32}}"; FORCE="${FORCE:-1}"
+JOBS="${JOBS:-${THREADS:-64}}"; FORCE="${FORCE:-1}"
 SAMPLES="${SAMPLES:-1}"; ONLY="${ONLY:-all}"
 [ -x "$gdiff" ] || { echo "set gdiff=/path/to/gdiff" >&2; exit 1; }
 
 CONFIGS=(
-  "xyz|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 4"
-  # "abc|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 4"
-  # "xyzs|k=23,w=23,h=11,frac=0.33,-l=500,n=1000|-k 23 -h 11 -w 23 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 3"
-  # "fgh|k=23,w=23,frac=0.50,-l=1000,n=1000|-k 23 -w 23 --frac 0.50 -l 1000 --sample-size 1000|--hdist-th 3"
-  # "klm|k=23,w=23,frac=0.66,-l=250,n=1000|-k 23 -w 23 --frac 0.66 -l 250 --sample-size 1000|--hdist-th 3"
-  # "abcs|k=23,w=23,frac=0.5,-l=500,n=1000|-k 23 -w 23 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
+  "k23-w23-h11-l500-n1000-frac50|k=23,w=23,frac=0.5,h=11,l=500,n=1000|-k 23 -w 23 -h 11 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
+  "k23-w23-h10-l500-n1000-frac50|k=23,w=23,frac=0.5,h=10,l=500,n=1000|-k 23 -w 23 -h 10 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
+  "k23-w23-h9-l500-n1000-frac50|k=23,w=23,frac=0.5,h=9,l=500,n=1000|-k 23 -w 23 -h 9 --frac 0.5 -l 500 --sample-size 1000|--hdist-th 3"
+  "k23-w23-h9-l333-n1000-frac50|k=23,w=23,frac=0.5,h=9,l=333,n=1000|-k 23 -w 23 -h 9 --frac 0.5 -l 333 --sample-size 1000|--hdist-th 3"
+  "k23-w23-h9-l500-n1000-frac33|k=23,w=23,frac=0.33,h=9,l=500,n=1000|-k 23 -w 23 -h 9 --frac 0.33 -l 500 --sample-size 1000|--hdist-th 3"
 )
 SAMPLES_HEADER=$'config\tgenome_a\tgenome_b\tqid\tstart\tend\tstrand\treference\td\tlr_bg\tlr_ub'
 DIST_HEADER=$'method\tparam_setup\tgenome_a\tgenome_b\tdistance\tani_pct'
@@ -78,9 +77,9 @@ for c in "${CONFIGS[@]}"; do
   # --- single dist: within-mode over the whole bundle, internal threads ---
   echo "  dist [$((NG * (NG - 1) / 2)) pairs, threads=$JOBS]" >&2
 
-  # Canonical unordered pair keys (what the v1 script emitted from this pairs
-  # file); the full all-vs-all matrix is exact, subsets get filtered out. The
-  # distance arguments (--hdist-th ...) are passed through to the dist call.
+  # Canonical unordered pair keys.
+  # The full all-vs-all matrix is exact, subsets get filtered out.
+  # The distance arguments (--hdist-th ...) are passed through to the dist call.
   awk 'NF>=2{a=$1;b=$2;if(a<b)k=a"|"b;else k=b"|"a;if(!(k in S)){S[k]=1;print k}}' \
     "$CACHE/pairs.tsv" | sort -u > "$parts/canon"
   if [ ! -s "$parts/canon" ]; then rm -rf "$parts"; continue; fi
@@ -91,8 +90,6 @@ for c in "${CONFIGS[@]}"; do
   "$gdiff" --num-threads "$JOBS" dist "$bundle" $dist_args > "$parts/sum.tsv" || true
   {
     echo "$DIST_HEADER"
-    # Summary schema (v0.2.0): genome_a genome_b d d_median ... The reconciled,
-    # lr-filtered per-pair distance is column `d`.
     awk -F'\t' -v setup="$setup" -v f="$parts/canon" '
       BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
       /^#/ { next }
@@ -112,11 +109,6 @@ for c in "${CONFIGS[@]}"; do
     "$gdiff" --num-threads "$JOBS" dist "$bundle" $dist_args --output-samples -o "$parts/samp.tsv" || true
     {
       echo "$SAMPLES_HEADER"
-      # v0.2.0 sample schema (header row): config genome_a genome_b seq start
-      # end strand direction d lr_ub. genome_a/genome_b are canonical and
-      # `direction` (ab|ba) says which was the query; emit one row per window
-      # with genome_a = query so the pair key matches pairs.tsv. lr_bg is not
-      # reported by v0.2.0 -> ".".
       awk -F'\t' -v cfg="$name" -v f="$parts/canon" '
         BEGIN { OFS="\t"; while ((getline l < f) > 0) fl[l] = 1; close(f) }
         !/^#/ && $1 != "config" && NF >= 10 {
