@@ -22,8 +22,9 @@ GENOMES="${GENOMES:-genomes}"
 SUFFIX="${SUFFIX:-_contigs.fasta}"
 ONLY="${ONLY:-}"
 JOBS="${JOBS:-8}"
+ARGS="${ARGS:--c 125 --min-af 0}"
 # ARGS="${ARGS:---slow --min-af 0}"
-ARGS="${ARGS:---robust --min-af 0 -c 70}"
+# ARGS="${ARGS:---robust --min-af 0 -c 70}"
 
 c=$(echo "$ARGS" | grep -o '\-c [0-9]*' | awk '{print $2}')
 m=$(echo "$ARGS" | grep -o '\-m [0-9]*' | awk '{print $2}')

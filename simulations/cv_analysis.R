@@ -4,7 +4,7 @@ library(dplyr)
 # install.packages("ggpmisc")
 library(ggpmisc)
 
-LR_UB_THR   <- 3.841
+LR_UB_THR   <- 6.635
 MIN_PORTION <- 0.66
 
 select_sample <- function(d, lr_ub, lr_ub_thr = LR_UB_THR, min_portion = MIN_PORTION) {
@@ -54,7 +54,7 @@ blast <- vroom("results-ORFvANI/results-combined.csv", delim = ",", show_col_typ
   transmute(genome_a, genome_b, ani_pct = mean_pident, stdev_pident, method = "BLAST")
 
 # ---------------- gdiff samples (lr_ub present -> filtered) ----------------
-gdiff <- read_samples("results/samples/gdiff-frac50-k23-w23-h9-l500-n1000-delta3.tsv") %>%
+gdiff <- read_samples("results/samples/gdiff-frac50-k23-w23-h9-l333-n1000-delta3.tsv") %>%
   group_by(genome_a, genome_b) %>%
   summarise(pair_ani(d, lr_ub), .groups = "drop") %>%
   mutate(method = "gdiff")
@@ -76,17 +76,21 @@ cv <- bind_rows(
   mutate(cv_pct = stdev_pident / (100 - ani_pct) * 100)
 
 # ---------------- Figure ----------------
-gg <- cv %>% filter(missing_percent == 0) %>%
+cv %>% filter(missing_percent == 0) %>%
+  filter(true_ani < 99) %>%
   mutate(true_ani_bin = cut(true_ani, c(80, 99, 100), include.lowest = TRUE)) %>%
   ggplot() +
-  aes(x = true_ani, y = cv_pct, color = method) +
-  geom_point(alpha = 0.4) +
-  facet_wrap(~true_ani_bin, scale = "free") +
+  # aes(x = true_ani, y = cv_pct, color = method) +
+  # geom_point(alpha = 0.4) +
+  # facet_wrap(~true_ani_bin, scale = "free") +
   geom_hline(yintercept = 1 / sqrt(5) * 100, linetype = "dashed") +
-  stat_smooth(method = "lm") +
-  stat_poly_eq(aes(label = after_stat(eq.label)), formula = y ~ x, parse = TRUE) +
+  # stat_smooth(method = "lm") +
+  # stat_poly_eq(aes(label = after_stat(eq.label)), formula = y ~ x, parse = TRUE) +
+  geom_violin(aes(y=cv_pct, x=method, fill=method), draw_quantiles = c(0.25, 0.5, 0.75)) +
+  stat_summary(aes(y=cv_pct, x=method)) +
   theme_bw() +
-  labs(x = "ANI", y = "Coefficient of variance (%)") +
-  scale_color_manual(values = c("#474B71", "#D0D55C", "#9D4030"))
+  # scale_y_log10() +
+  labs(x = "ANI", y = "Coefficient of variance (%)", fill="Method") +
+  scale_fill_manual(values = c("#474B71", "#D0D55C", "#BD4030"))
 
-gg
+ggsave("./S-coef-variance-simulations.pdf", width = 6, height = 3.75)

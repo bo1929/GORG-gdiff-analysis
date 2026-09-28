@@ -47,7 +47,7 @@ df %>% filter(ani_true <= 99) %>%
   geom_hline(yintercept = 0, linetype=2) +
   # coord_cartesian(ylim = c(0.95, 1.15)) +
   # scale_y_log10() +
-  theme_bw() + labs(x=TeX(r'(${D_{ANIb}$})'), y=TeX(r'(Error (%))'), title="251,534 pairs from GORG", fill="Method") +
+  theme_bw() + labs(x=TeX(r'(${D_{ANIb}$})'), y=TeX(r'(Percentage Error)'), title="251,534 pairs from GORG", fill="Method") +
   scale_fill_manual(values = mc) +
   scale_color_manual(values = mc) + scale_y_continuous(labels=percent)
 ggsave("./results/G-pe-lt99-anib.pdf", width = 7, height = 3.5)
@@ -60,8 +60,8 @@ df %>%
   ggplot() +
   aes(fill=z, y=ani_bin, x=method) +
   geom_tile() +
-  geom_label(aes(label=round(z, 2), color=z>500), show.legend = F) +
-  labs(fill=TeX(r'(MAPE (%))'), x="Method", y=TeX(r'(${D_{ANIb}$})')) +
+  geom_label(aes(label=round(z, 1), color=z>500), show.legend = F) +
+  labs(fill=TeX(r'(MAPE)'), x="Method", y=TeX(r'(${D_{ANIb}$})')) +
   # geom_abline(linetype="dashed") +
   theme_cowplot(font_size = 10) +
   scale_fill_viridis_c(option = "B", direction = -1, values = c(0, 0.01, 0.05, 0.10, 0.25, 0.5, 0.75, 1)) +
@@ -83,7 +83,7 @@ df %>% filter(ani_true <= 99) %>%
   geom_hline(yintercept = 0, linetype="dashed") +
   # coord_cartesian(ylim = c(0.95, 1.15)) +
   # scale_y_log10() +
-  theme_bw() + labs( y=TeX(r'(Error (%))'), title="251,534 pairs from GORG") +
+  theme_bw() + labs( y=TeX(r'(Percentage Error)'), title="251,534 pairs from GORG") +
   scale_color_manual(values = mc) + scale_y_continuous(labels=percent) +
   scale_fill_manual(values = mc) + theme(axis.text.x = element_blank()) +
   labs(x="", fill="Method") + coord_cartesian(ylim = c(-0.45, 0.60)) 
@@ -103,7 +103,7 @@ ggscatter(
 
 df %>% filter(ani_true > 90) %>%
   ggplot() +
-  aes(x=ani_true, y=ani_est, color=method) +
+  aes(x=ani_true, y=ani_est, color=method, fill=method) +
   stat_cor(aes(label = ..r.label..), method = "spearman", show.legend = F) +
   geom_point(alpha=0.05) +
   stat_smooth(method = "lm", linewidth=1.5) +
@@ -111,20 +111,20 @@ df %>% filter(ani_true > 90) %>%
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc) +
   theme_bw() +
-  labs(x="ANIb", y=TeX(r'(${\hat{ANI}}$)')) +
+  labs(x="ANIb", y=TeX(r'(${\hat{ANI}}$)'), color="Method", fill="Method") +
   coord_cartesian(x=c(90, 100), y=c(90, 100))
-ggsave("./results/G-scorr-gt90-anib.pdf", width = 4.65, height = 3.5)
+ggsave("./results/G-scorr-gt90-anib.pdf", width = 5, height = 3.5)
 
 df %>%
   filter((ani_true < 90) & (ani_true > 80)) %>%
   # filter((ani_true > 90)) %>%
   ggplot() +
-  aes(x=1-ani_true/100, y=1-ani_est/100, color=method) +
+  aes(x=1-ani_true/100, y=1-ani_est/100, color=method, fill = method) +
   stat_cor(aes(label = ..r.label..), label.y = c(0.195, 0.190, 0.185, 0.180, 0.175), position = position_dodge2(), method = "pearson", show.legend = F) +
   geom_point(alpha=0.025) +
   stat_smooth(method = "lm", linewidth=1.2) +
   geom_abline(linewidth=1, alpha=1, linetype="dashed") +
-    geom_text(
+  geom_text(
     data = function(d) d %>% 
       group_by(method) %>% 
       summarize(
@@ -141,15 +141,15 @@ df %>%
   ) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc) +
-  theme_cowplot() +
+  theme_cowplot(font_size = 11) +
   coord_cartesian(x=c(0.1, 0.2), y=c(0.1, 0.2)) +
   labs(y=TeX(r'(${\hat{D}$})'), x=TeX(r'(${D_{ANIb}$})'), color="Method", fill="Method")
-ggsave("./results/G-pcorr-mape-lt90gt80-anib.pdf", width = 4.65, height = 3.5)
+ggsave("./results/G-pcorr-mape-lt90gt80-anib.pdf", width = 5, height = 3.75)
 
 df %>%
   filter((ani_true > 90)) %>%
   ggplot() +
-  aes(x=1-ani_true/100, y=1-ani_est/100, color=method) +
+  aes(x=1-ani_true/100, y=1-ani_est/100, color=method, fill = method) +
   stat_cor(aes(label = ..r.label..), label.y = c(0.095, 0.090, 0.085, 0.080, 0.075), position = position_dodge2(), method = "pearson", show.legend = F) +
   geom_point(alpha=0.025) +
   stat_smooth(method = "lm", linewidth=1.2) +
@@ -171,10 +171,10 @@ df %>%
   ) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc) +
-  theme_cowplot() +
+  theme_cowplot(font_size = 11) +
   coord_cartesian(x=c(0.0, 0.1), y=c(0.0, 0.1)) +
   labs(y=TeX(r'(${\hat{D}$})'), x=TeX(r'(${D_{ANIb}$})'), color="Method", fill="Method")
-ggsave("./results/G-pcorr-mape-gt90-anib.pdf", width = 4.65, height = 3.5)
+ggsave("./results/G-pcorr-mape-gt90-anib.pdf", width = 5, height = 3.75)
 
 df %>% filter(ani_true <= 99) %>%
   filter(method!="skani" | ani_true > 80) %>%
@@ -193,12 +193,12 @@ df %>% filter(ani_true <= 99) %>%
   geom_hline(yintercept = 0, linetype="dashed") +
   theme_bw() +
   scale_y_continuous(labels=percent) +
-  labs(x=TeX(r'($D_{ANIb})'), y=TeX(r'(Mean Absolute Error (%))'), title="251,534 pairs from GORG", color="Method", shape="Method") +
+  labs(x=TeX(r'($D_{ANIb})'), y=TeX(r'(MAPE)'), title="251,534 pairs from GORG", color="Method", shape="Method") +
   scale_fill_manual(values = mc) +
   scale_color_manual(values = mc) +
   scale_shape_manual(values = c(18, 17, 16, 8, 15)) +
   theme(axis.text.x = element_text(angle=35, hjust=1))
-ggsave("./results/G-mae-summary-lt99-anib.pdf", width = 5, height = 4)
+ggsave("./results/G-mape-summary-lt99-anib.pdf", width = 6, height = 3.5)
 
 merge(
   df %>% mutate(ani_bin=cut(ani_true, c(65, 70, 75, 80, 100))) %>% group_by(method, ani_bin) %>% summarise(c=n()),

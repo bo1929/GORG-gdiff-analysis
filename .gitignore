@@ -1,3 +1,6 @@
+*.tmp
+*.Rhistory
+*.pdf
 resource-benchmarking/output-*
 
 # Python
@@ -26,11 +29,8 @@ venv/
 windows.fa
 
 # Local workdirs / scratch outputs (keep scripts, not runs)
-**/mm_work/
-**/mu_work/
-**/blast_work/
-**/_mu_test/
-**/benchmark_out/
+**/*_work/
+**/*benchmark/
 **/.work_*/
 
 # Global reusable sketch/cache tree (large binaries)
