@@ -93,4 +93,4 @@ cv %>% filter(missing_percent == 0) %>%
   labs(x = "ANI", y = "Coefficient of variance (%)", fill="Method") +
   scale_fill_manual(values = c("#474B71", "#D0D55C", "#BD4030"))
 
-ggsave("./S-coef-variance-simulations.pdf", width = 6, height = 3.75)
+ggsave("./S-coef-variance-simulations.pdf", width = 4.5, height = 3)
