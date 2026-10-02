@@ -1,7 +1,7 @@
 === resource benchmark: 1 reference set vs N (alpha 22, target level 0.05) ===
 results ./resource-scaling.tsv
 log     ./resource-scaling.log
-scratch /var/folders/5v/gxb34yvs5dl0qjqhrm3jqvlw0000gn/T//resource-scaling.iEDDpW (removed on exit)
+scratch /tmp/resource-scaling.dJwDXV (removed on exit)
 threads 4 (wfmash -t, gdiff --num-threads)
 pool    29 seed(s); using N=100 genome(s) in 4 pass(es) over the pool
         the pool is cycled: repeated copies get a c<K>_ contig prefix so names stay unique
@@ -18,14 +18,17 @@ pool    29 seed(s); using N=100 genome(s) in 4 pass(es) over the pool
     81/100  level 0.05  AG-908-A02  ->  mutated_BLOSUM62_AG-908-A02_a22_gnd006  (copy 2)
     91/100  level 0.05  AG-414-L04  ->  mutated_BLOSUM62_AG-414-L04_a22_gnd006  (copy 3)
     100/100  level 0.05  AG-893-E23  ->  mutated_BLOSUM62_AG-893-E23_a22_gnd006  (copy 3)
-        refN.fa 121M, qryN.fa 119M
+        refN.fa 121M, qryN.fa 120M
 
 --- indexes (built once, shared by every case)
 
 --- mapping (queries x references)
-    1x1  gdiff windows 10221, wfmash alignments 63
-    1xN  gdiff windows 1241942, wfmash alignments 4608
-    Nx1  gdiff windows 1022100, wfmash alignments 4995
+resource-scaling.sh: line 238: /tmp/resource-scaling.dJwDXV/aln.1x1.paf: No such file or directory
+    1x1  gdiff windows 10221, wfmash alignments 
+resource-scaling.sh: line 238: /tmp/resource-scaling.dJwDXV/aln.1xN.paf: No such file or directory
+    1xN  gdiff windows 1241942, wfmash alignments 
+resource-scaling.sh: line 238: /tmp/resource-scaling.dJwDXV/aln.Nx1.paf: No such file or directory
+    Nx1  gdiff windows 1022100, wfmash alignments 
 
 --- threads actually used
     gdiff   4
@@ -33,18 +36,18 @@ pool    29 seed(s); using N=100 genome(s) in 4 pass(es) over the pool
 
 --- indexes, built once and shared
     references                gdiff             wfmash
-    1                 0.06 s     13 MiB      0.24 s     56 MiB
-    100               1.64 s    437 MiB      9.27 s   3737 MiB
+    1                 0.09 s     12 MiB      0.36 s     32 MiB
+    100               2.14 s    328 MiB     22.51 s   4414 MiB
 
 --- mapping (a cell is one query against one reference)
     case   cells |   gdiff s   s/cell |   wfmash s   s/cell
-    1x1        1 |      0.03   0.0300 |       2.53   2.5300
-    1xN      100 |      1.66   0.0166 |     127.53   1.2753
-    Nx1      100 |      1.56   0.0156 |     172.28   1.7228
+    1x1        1 |      0.04   0.0400 |       3.93   3.9300
+    1xN      100 |      2.24   0.0224 |     208.81   2.0881
+    Nx1      100 |      2.06   0.0206 |     289.11   2.8911
 
 --- scaling against the 1x1 baseline, both at 100 cells
-    gdiff   baseline    0.03 s | 1xN x55.33  | Nx1 x52.00 
-    wfmash  baseline    2.53 s | 1xN x50.41  | Nx1 x68.09 
+    gdiff   baseline    0.04 s | 1xN x56.00  | Nx1 x51.50 
+    wfmash  baseline    3.93 s | 1xN x53.13  | Nx1 x73.56 
 
 --- reading it
     1xN (1 reference, N queries) and Nx1 (N references, 1 query) are both N cells, so
@@ -56,14 +59,14 @@ pool    29 seed(s); using N=100 genome(s) in 4 pass(es) over the pool
 wrote ./resource-scaling.tsv
 
 --- results
-case     tool    step   references  queries  cells  threads  wall_s   user_s   sys_s   peak_rss_mb  exit
-index_1  gdiff   index  1           0        0      4        0.060    0.040    0.000   13.2         0
-index_1  wfmash  index  1           0        0      4        0.240    0.180    0.020   56.2         0
-index_N  gdiff   index  100         0        0      4        1.640    5.410    0.230   436.8        0
-index_N  wfmash  index  100         0        0      4        9.270    22.800   2.080   3736.9       0
-1x1      gdiff   map    1           1        1      4        0.030    0.050    0.000   8.9          0
-1x1      wfmash  map    1           1        1      4        2.530    9.120    0.170   441.8        0
-1xN      gdiff   map    1           100      100    4        1.660    5.420    0.090   143.7        0
-1xN      wfmash  map    1           100      100    4        127.530  491.300  16.070  1212.5       0
-Nx1      gdiff   map    100         1        100    4        1.560    4.580    0.120   272.4        0
-Nx1      wfmash  map    100         1        100    4        172.280  663.220  21.640  1534.6       0
+case     tool    step   references  queries  cells  threads  wall_s   user_s    sys_s   peak_rss_mb  exit
+index_1  gdiff   index  1           0        0      4        0.090    0.070     0.020   12.0         0
+index_1  wfmash  index  1           0        0      4        0.360    0.500     0.070   32.1         0
+index_N  gdiff   index  100         0        0      4        2.140    6.950     0.580   328.1        0
+index_N  wfmash  index  100         0        0      4        22.510   61.970    6.230   4413.7       0
+1x1      gdiff   map    1           1        1      4        0.040    0.070     0.010   8.0          0
+1x1      wfmash  map    1           1        1      4        3.930    14.280    0.690   284.5        0
+1xN      gdiff   map    1           100      100    4        2.240    6.640     0.150   59.4         0
+1xN      wfmash  map    1           100      100    4        208.810  774.020   57.140  531.0        0
+Nx1      gdiff   map    100         1        100    4        2.060    6.070     0.170   227.9        0
+Nx1      wfmash  map    100         1        100    4        289.110  1083.010  64.470  1560.1       0

@@ -40,7 +40,6 @@
 # --num-threads is a GLOBAL gdiff option, so it precedes the subcommand. gdiff is deterministic
 # at any thread count; wfmash is NOT at -t >1, so its alignment counts vary between runs.
 # --- end help ---
-set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SIMDIR="${SIMDIR:-$(cd "$HERE/.." && pwd)}"
