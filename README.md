@@ -6,14 +6,14 @@
 |---|---|
 | `bin/` | Bundled binaries + `gdiff`/`dashing2` arch dispatchers (osx  -  x86-64) |
 | `methods/` | One shell wrapper per estimator; uniform `<genome_dir> <pairs.tsv> [outdir]` CLI |
-| `pairwise-mapping/` | Regional block extractors: BLASTn, minimap2, nucmer → common TSV schema |
+| `pairwise-mapping/` | Regional block extractors: BLASTn, minimap2, nucmer -> common TSV schema |
 | `simulations/` | Divergence simulation corpus, per-method runners, and the gene-level study |
 | `resource-benchmarking/` | All-vs-all wall time / CPU / peak-RSS benchmark over a genome sample |
 | `gene_coordinates/` | Per-gene gdiff distances and the BLASTn-vs-gdiff gene comparison |
 | `blastn_blocks/` | BLASTn window blocks, all-vs-all and for selected pairs |
 | `results/` | Published ANI tables (`ani-comparison/`), roll windows, and figure PDFs |
-| `scripts/` | Small C helpers: sample reconciliation, summarisation, in-sample ANI |
-| `contigs-gt80-complete/` | 830 genome assemblies, >80% completeness: the main input set |
+| `scripts/` | Small C helpers: sample reconciliation, summarisation, in-sample ANI, per-pair Hartigan dip (see `scripts/README.md`) |
+| `contigs-gt80-complete/` | 830 genome assemblies, >80% completeness — the main input set |
 | `dataset-GORG/` | Wider GORG source data: 12,715 Prokka tables, GBK/16S/ORF annotations |
 
 ## Data and fixtures
@@ -52,7 +52,7 @@ mutated genome against its baseline; `iterate_variant_pairs.sh` and
 ## Gene-level study
 
 `simulations/gene-level/` is a self-contained six-stage pipeline (`01-pick-variant`
-→ `06-evaluate`) with its own README, `lib/`, and bundled `wfmash`; it scores
+-> `06-evaluate`) with its own README, `lib/`, and bundled `wfmash`; it scores
 gdiff roll windows and wfmash against the exact simulated per-gene divergence.
 `resource-scaling.sh` times one shared index across `1x1`, `1xN` and `Nx1` cells.
 
@@ -67,7 +67,7 @@ gdiff roll windows and wfmash against the exact simulated per-gene divergence.
 | `simulations/gene-level/plot-wfmash-gorg.R` | Gene-level gdiff-vs-wfmash and resource plots |
 | `gene_coordinates/compare-blastn.R` | gdiff vs BLASTn per-gene distance correlation |
 | `resource-benchmarking/plot-resource.R` | Peak memory and running-time PDFs |
-| `blastn_from_gbk.py` | GBK genes → BLASTn → block TSV (chain mode, sentinel rows) |
+| `blastn_from_gbk.py` | GBK genes -> BLASTn -> block TSV (chain mode, sentinel rows) |
 
 Outputs: `results/ani-comparison/*/distances/` (gzipped per-method tables),
 `results/gdiff-roll/*.tsv.gz` (per-genome window distances),
