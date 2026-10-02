@@ -1,0 +1,9 @@
+selected pairs             : 122
+pairs with a gdiff file    : 122
+query windows written      : 218,163
+  of which annotated genes : 54,752
+  gdiff offset windows     : 163,411
+matched (window has a blastn distance for its gene): 27,473
+  Pearson r                : 0.9808
+  MAE                      : 0.0061
+  bias (blastn - gdiff)    : +0.0016
