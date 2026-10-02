@@ -1,0 +1,68 @@
+=== resource benchmark: 1 reference set vs N (alpha 22, target level 0.05) ===
+results ./resource-scaling.tsv
+log     ./resource-scaling.log
+scratch /var/folders/5v/gxb34yvs5dl0qjqhrm3jqvlw0000gn/T//resource-scaling.8HRQ4u (removed on exit)
+threads 4 (wfmash -t, gdiff --num-threads)
+
+--- inputs
+    1/10  AG-359-G18  ->  mutated_BLOSUM62_AG-359-G18_a22_gnd006
+    2/10  AG-390-D15  ->  mutated_BLOSUM62_AG-390-D15_a22_gnd006
+    3/10  AG-390-N04  ->  mutated_BLOSUM62_AG-390-N04_a22_gnd006
+    4/10  AG-414-L04  ->  mutated_BLOSUM62_AG-414-L04_a22_gnd006
+    5/10  AG-426-E17  ->  mutated_BLOSUM62_AG-426-E17_a22_gnd005
+    6/10  AG-435-F03  ->  mutated_BLOSUM62_AG-435-F03_a22_gnd006
+    7/10  AG-891-G05  ->  mutated_BLOSUM62_AG-891-G05_a22_gnd006
+    8/10  AG-891-I18  ->  mutated_BLOSUM62_AG-891-I18_a22_gnd006
+    9/10  AG-891-J04  ->  mutated_BLOSUM62_AG-891-J04_a22_gnd006
+    10/10  AG-891-J07  ->  mutated_BLOSUM62_AG-891-J07_a22_gnd006
+
+--- indexes (built once, shared by every case)
+
+--- mapping (queries x references)
+    1x1  gdiff windows 10221, wfmash alignments 63
+    1xN  gdiff windows 124245, wfmash alignments 511
+    Nx1  gdiff windows 102210, wfmash alignments 513
+    NxN  gdiff windows 1242450, wfmash alignments 4006
+
+--- threads actually used
+    gdiff   4
+    wfmash  4
+
+--- indexes, built once and shared
+    references                gdiff             wfmash
+    1                 0.06 s     13 MiB      0.25 s     58 MiB
+    10                0.19 s     84 MiB      1.07 s    636 MiB
+
+--- mapping (a cell is one query against one reference)
+    case   cells |   gdiff s   s/cell |   wfmash s   s/cell
+    1x1        1 |      0.02   0.0200 |       2.52   2.5200
+    1xN       10 |      0.17   0.0170 |      14.07   1.4070
+    Nx1       10 |      0.15   0.0150 |      17.65   1.7650
+    NxN      100 |      1.67   0.0167 |     147.53   1.4753
+
+--- 1 reference set -> 10 on one shared index (the 1x1 -> NxN corner)
+    gdiff   cells x100  wall x83.50  -> per-cell cost x0.83  (0.020 -> 0.017 s/cell)
+    wfmash  cells x100  wall x58.54  -> per-cell cost x0.59  (2.520 -> 1.475 s/cell)
+
+--- reading it
+    Cost tracks query x reference cells, not genomes: 1x1 -> NxN multiplies the cells by
+    100, so dividing wall time by the number of genomes overstates the growth. Compare
+    1x1 -> 1xN (query scaling) with 1x1 -> Nx1 (reference scaling) before attributing
+    growth to the shared index. Peak RSS is a per-process high-water mark.
+
+wrote ./resource-scaling.tsv
+
+--- results
+case     tool    step   references  queries  cells  threads  wall_s   user_s   sys_s   peak_rss_mb  exit
+index_1  gdiff   index  1           0        0      4        0.060    0.070    0.010   13.1         0
+index_1  wfmash  index  1           0        0      4        0.250    0.180    0.020   57.6         0
+index_N  gdiff   index  10          0        0      4        0.190    0.570    0.050   84.5         0
+index_N  wfmash  index  10          0        0      4        1.070    2.230    0.230   636.2        0
+1x1      gdiff   map    1           1        1      4        0.020    0.050    0.000   8.8          0
+1x1      wfmash  map    1           1        1      4        2.520    9.100    0.160   386.3        0
+1xN      gdiff   map    1           10       10     4        0.170    0.540    0.010   33.2         0
+1xN      wfmash  map    1           10       10     4        14.070   54.290   1.390   716.0        0
+Nx1      gdiff   map    10          1        10     4        0.150    0.460    0.010   34.9         0
+Nx1      wfmash  map    10          1        10     4        17.650   66.900   1.720   790.9        0
+NxN      gdiff   map    10          10       100    4        1.670    5.460    0.080   75.8         0
+NxN      wfmash  map    10          10       100    4        147.530  574.310  14.840  950.2        0

@@ -1,0 +1,13 @@
+case	tool	step	references	queries	cells	threads	wall_s	user_s	sys_s	peak_rss_mb	exit
+index_1	gdiff	index	1	0	0	8	0.060	0.070	0.010	13.3	0
+index_1	wfmash	index	1	0	0	8	0.240	0.460	0.020	63.7	0
+index_N	gdiff	index	10	0	0	8	0.140	0.630	0.050	123.6	0
+index_N	wfmash	index	10	0	0	8	1.230	6.130	0.220	641.5	0
+1x1	gdiff	map	1	1	1	8	0.020	0.060	0.000	9.7	0
+1x1	wfmash	map	1	1	1	8	1.980	12.100	0.250	805.6	0
+1xN	gdiff	map	1	10	10	8	0.130	0.670	0.020	37.5	0
+1xN	wfmash	map	1	10	10	8	9.650	72.190	2.050	1507.4	0
+Nx1	gdiff	map	10	1	10	8	0.110	0.570	0.020	38.1	0
+Nx1	wfmash	map	10	1	10	8	11.860	88.290	2.510	1534.5	0
+NxN	gdiff	map	10	10	100	8	1.240	6.810	0.240	121.9	0
+NxN	wfmash	map	10	10	100	8	102.040	779.880	23.010	1901.3	0
