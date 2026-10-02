@@ -7,9 +7,14 @@
 # OpenMP is detected automatically; on macOS with Homebrew libomp the flags
 # below are used, otherwise the tools build single-threaded (still correct,
 # just serial).  Set OPENMP=0 to force a serial build.
+#
+# CFLAGS uses gnu99 rather than strict c99: the tools need POSIX getline(),
+# ssize_t and off_t, which glibc hides under -std=c99.  dip_pairs.c also
+# defines _POSIX_C_SOURCE/_DEFAULT_SOURCE itself, so -std=c99 works too, but
+# gnu99 is the safer default on Linux.  Override CFLAGS to taste.
 
 CC      ?= cc
-CFLAGS  ?= -O3 -std=c99 -Wall -Wextra
+CFLAGS  ?= -O3 -std=gnu99 -Wall -Wextra
 LDLIBS  ?= -lm
 
 OPENMP ?= auto

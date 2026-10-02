@@ -66,12 +66,32 @@
  *            scripts/dip_pairs.c -lm
  */
 
+/*
+ * We use getline(), ssize_t and off_t, which ISO C does not declare.  Ask for
+ * POSIX.1-2008 plus the default (BSD/glibc) namespace *before* any header is
+ * included; otherwise a strict -std=c99 build on x86-64 Linux/glibc fails with
+ * "implicit declaration of getline" and "unknown type name ssize_t/off_t"
+ * (macOS headers happen to expose all of these, so this only shows up there).
+ * _DEFAULT_SOURCE is unnecessary on glibc >= 2.12 but is harmless and covers
+ * older glibc, where strdup() sat outside _POSIX_C_SOURCE.
+ *
+ * strdup() itself is deliberately not used: Darwin gates it on _DARWIN_C_SOURCE
+ * even when _POSIX_C_SOURCE is set, so xstrdup() below is open-coded instead.
+ */
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <limits.h>
 
 #ifdef _OPENMP
@@ -342,10 +362,15 @@ static uint64_t mix3(uint64_t a, uint64_t b, uint64_t c)
     return h;
 }
 
+/* Our own strdup(): avoids depending on the C library's, which ISO C does not
+ * declare (and which would then only be visible via the feature-test macros
+ * above). */
 static char *xstrdup(const char *s)
 {
-    char *p = strdup(s);
+    size_t n = strlen(s) + 1;
+    char *p = malloc(n);
     if (!p) { fprintf(stderr, "dip-pairs: out of memory\n"); exit(2); }
+    memcpy(p, s, n);
     return p;
 }
 
