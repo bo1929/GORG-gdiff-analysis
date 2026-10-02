@@ -13,7 +13,7 @@ library(ggforce)
 
 dfg <- vroom("results/genes-joined-all.tsv.gz")
 dfs <- vroom("results/genome-all.tsv.gz")
-dfr <- vroom("resource-scaling-N100.tsv")
+dfr <- vroom("resource-one-to-many/resource-scaling-nt4-N100.tsv")
 
 dfr %>%
   filter(case %in% c("1xN", "index_N")) %>%
