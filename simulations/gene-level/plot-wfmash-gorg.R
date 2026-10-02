@@ -11,8 +11,8 @@ library(cowplot)
 # install.packages("ggforce")
 library(ggforce)
 
-dfg <- vroom("results/genes-joined-all.tsv")
-dfs <- vroom("results/genome-all.tsv")
+dfg <- vroom("results/genes-joined-all.tsv.gz")
+dfs <- vroom("results/genome-all.tsv.gz")
 dfr <- vroom("resource-scaling-N100.tsv")
 
 dfr %>%

@@ -23,7 +23,7 @@ df %>%
   mutate(lbl=if_else(is.na(wall_sec), "x", "")) %>%
   mutate(wall_sec=if_else(is.na(wall_sec), 0, wall_sec)) %>%
   ggplot() +
-  aes(x=method, y=wall_sec, fill=method) +
+  aes(x=reorder(method, -wall_sec), y=wall_sec, fill=method) +
   facet_wrap(~phase) +
   stat_summary(geom="bar", show.legend = F) +
   geom_text(aes(label=lbl, y=0.5), size=4, color="black") +
@@ -41,7 +41,7 @@ df %>%
   mutate(lbl=if_else(is.na(wall_sec), "x", "")) %>%
   mutate(wall_sec=if_else(is.na(wall_sec), 0, wall_sec)) %>%
   ggplot() +
-  aes(x=method, y=maxrss_mib, fill=method) +
+  aes(x=reorder(method, -wall_sec), y=maxrss_mib, fill=method) +
   facet_wrap(~phase) +
   stat_summary(geom="bar", show.legend = F) +
   geom_text(aes(label=lbl, y=75), size=4, color="black") +
