@@ -4,7 +4,7 @@
 
 | Path | What it is |
 |---|---|
-| `bin/` | Bundled binaries + `gdiff`/`dashing2` arch dispatchers (osx ↔ x86-64) |
+| `bin/` | Bundled binaries + `gdiff`/`dashing2` arch dispatchers (osx  -  x86-64) |
 | `methods/` | One shell wrapper per estimator; uniform `<genome_dir> <pairs.tsv> [outdir]` CLI |
 | `pairwise-mapping/` | Regional block extractors: BLASTn, minimap2, nucmer → common TSV schema |
 | `simulations/` | Divergence simulation corpus, per-method runners, and the gene-level study |
@@ -13,29 +13,28 @@
 | `blastn_blocks/` | BLASTn window blocks, all-vs-all and for selected pairs |
 | `results/` | Published ANI tables (`ani-comparison/`), roll windows, and figure PDFs |
 | `scripts/` | Small C helpers: sample reconciliation, summarisation, in-sample ANI |
-| `contigs-gt80-complete/` | 830 genome assemblies, >80% completeness — the main input set |
+| `contigs-gt80-complete/` | 830 genome assemblies, >80% completeness: the main input set |
 | `dataset-GORG/` | Wider GORG source data: 12,715 Prokka tables, GBK/16S/ORF annotations |
-| `.tmp/` | Scratch run dirs and locally built helper binaries (untracked, large) |
 
 ## Data and fixtures
 
-- `all_pairs.tsv` — 251,534 query/subject/ANI% rows (comment header).
-- `anib-groundtruth.csv` — the same 251,534 pairs with the full ANIb truth
+- `all_pairs.tsv`: 251,534 query/subject/ANI% rows (comment header).
+- `anib-groundtruth.csv`: the same 251,534 pairs with the full ANIb truth
   columns: ANI, two-way alignment coverage and length, gene and ortholog
   counts, AAI, AAD and 16S divergence.
 - `selected_pairs.tsv` (124 pairs, tab-separated with a comment header) and
-  `selected_genomes-{ref,queries}.txt` (100/101 FASTA paths) — the working
+  `selected_genomes-{ref,queries}.txt` (100/101 FASTA paths): the working
   subset used for the gene-level and regional comparisons.
-- `contigs-gt80-complete/*.fasta` — genome FASTA keyed by strain id; the 828
+- `contigs-gt80-complete/*.fasta`: genome FASTA keyed by strain id; the 828
   ids that also appear in `dataset-GORG` are the annotated core.
-- `dataset-GORG/` — `tbl/` (12,715 `<id>_prokka-swissprot.tsv.xz`), `gbk/`
+- `dataset-GORG/`: `tbl/` (12,715 `<id>_prokka-swissprot.tsv.xz`), `gbk/`
   (179 curated GenBank), `panspecies_gbk/` + `panspecies_blastn/` (828 genomes,
   16S vs ORF hits), `per_hit_mappings/` (197 per-genome hit tables).
-- `simulations/genomes/<seed>/` — 29 seed genomes, each with the baseline
+- `simulations/genomes/<seed>/`: 29 seed genomes, each with the baseline
   contigs, gene calls, per-gene weights, and `mutated_BLOSUM62_*_a<alpha>_gnd*`
   variant directories at five divergence levels.
-- `simulations/metadata.tsv`, `pairs.tsv` — realised GND/AAD/true ANI per
-  variant and the variant↔baseline pair list.
+- `simulations/metadata.tsv`, `pairs.tsv`: realised GND/AAD/true ANI per
+  variant and the variant - baseline pair list.
 
 ## Engines and wrappers
 
