@@ -1,0 +1,89 @@
+=== resource benchmark: 1 reference set vs N (alpha 22, mixed levels) ===
+results ./resource-scaling.tsv
+log     ./resource-scaling.log
+scratch /tmp/resource-scaling.GBwLR9 (removed on exit)
+threads 16 (wfmash -t, gdiff --num-threads)
+pool    29 seed(s); N=100 reference(s), Q=10 query/queries
+        the pool is cycled: repeated copies get a c<K>_ contig prefix so names stay unique
+
+--- inputs
+    levels drawn from [0.01 0.05 0.10 0.18] with rng seed 1: 0.01 x30, 0.05 x24, 0.10 x21, 0.18 x35
+    reference 1/100  level 0.05  AG-359-G18  ->  mutated_BLOSUM62_AG-359-G18_a22_gnd006
+    reference 11/100  level 0.18  AG-891-K05  ->  mutated_BLOSUM62_AG-891-K05_a22_gnd020
+    reference 21/100  level 0.01  AG-900-I13  ->  mutated_BLOSUM62_AG-900-I13_a22_gnd001
+    reference 31/100  level 0.18  AG-390-D15  ->  mutated_BLOSUM62_AG-390-D15_a22_gnd020  (copy 1)
+    reference 41/100  level 0.05  AG-892-F15  ->  mutated_BLOSUM62_AG-892-F15_a22_gnd006  (copy 1)
+    reference 51/100  level 0.01  AG-904-K03  ->  mutated_BLOSUM62_AG-904-K03_a22_gnd001  (copy 1)
+    reference 61/100  level 0.01  AG-390-N04  ->  mutated_BLOSUM62_AG-390-N04_a22_gnd001  (copy 2)
+    reference 71/100  level 0.05  AG-893-E23  ->  mutated_BLOSUM62_AG-893-E23_a22_gnd006  (copy 2)
+    reference 81/100  level 0.10  AG-908-A02  ->  mutated_BLOSUM62_AG-908-A02_a22_gnd011  (copy 2)
+    reference 91/100  level 0.18  AG-414-L04  ->  mutated_BLOSUM62_AG-414-L04_a22_gnd020  (copy 3)
+    reference 100/100  level 0.05  AG-893-E23  ->  mutated_BLOSUM62_AG-893-E23_a22_gnd006  (copy 3)
+    query     1/10  level 0.05  AG-359-G18  ->  mutated_BLOSUM62_AG-359-G18_a22_gnd006
+    query     2/10  level 0.05  AG-390-D15  ->  mutated_BLOSUM62_AG-390-D15_a22_gnd006
+    query     3/10  level 0.01  AG-390-N04  ->  mutated_BLOSUM62_AG-390-N04_a22_gnd001
+    query     4/10  level 0.10  AG-414-L04  ->  mutated_BLOSUM62_AG-414-L04_a22_gnd011
+    query     5/10  level 0.01  AG-426-E17  ->  mutated_BLOSUM62_AG-426-E17_a22_gnd001
+    query     6/10  level 0.01  AG-435-F03  ->  mutated_BLOSUM62_AG-435-F03_a22_gnd001
+    query     7/10  level 0.01  AG-891-G05  ->  mutated_BLOSUM62_AG-891-G05_a22_gnd001
+    query     8/10  level 0.01  AG-891-I18  ->  mutated_BLOSUM62_AG-891-I18_a22_gnd001
+    query     9/10  level 0.18  AG-891-J04  ->  mutated_BLOSUM62_AG-891-J04_a22_gnd020
+    query     10/10  level 0.01  AG-891-J07  ->  mutated_BLOSUM62_AG-891-J07_a22_gnd001
+        refN.fa 121M, qryQ.fa 12M
+
+--- indexes (built once, shared by every case)
+
+--- mapping (queries x references)
+./resource-scaling.sh: line 263: /tmp/resource-scaling.GBwLR9/aln.1x1.paf: No such file or directory
+    1x1  gdiff windows 10221, wfmash alignments 
+./resource-scaling.sh: line 263: /tmp/resource-scaling.GBwLR9/aln.1xQ.paf: No such file or directory
+    1xQ  gdiff windows 124245, wfmash alignments 
+./resource-scaling.sh: line 263: /tmp/resource-scaling.GBwLR9/aln.Nx1.paf: No such file or directory
+    Nx1  gdiff windows 1022100, wfmash alignments 
+./resource-scaling.sh: line 263: /tmp/resource-scaling.GBwLR9/aln.NxQ.paf: No such file or directory
+    NxQ  gdiff windows 12424500, wfmash alignments 
+
+--- threads actually used
+    gdiff   16
+    wfmash  16
+
+--- indexes, built once and shared
+    references                gdiff             wfmash
+    1                 0.10 s     12 MiB      0.36 s     28 MiB
+    100               0.65 s    390 MiB     21.34 s   4709 MiB
+
+--- mapping (a cell is one query against one reference)
+    case   cells |   gdiff s   s/cell |   wfmash s   s/cell
+    1x1        1 |      0.03   0.0300 |       1.64   1.6400
+    1xQ       10 |      0.16   0.0160 |       8.37   0.8370
+    Nx1      100 |      1.33   0.0133 |      74.79   0.7479
+    NxQ     1000 |     11.47   0.0115 |     706.57   0.7066
+
+--- scaling against the 1x1 baseline (1xQ = 10 cells, Nx1 = 100 cells, NxQ = 1000 cells)
+    gdiff   baseline    0.03 s | 1xQ x5.33   | Nx1 x44.33  | NxQ x382.33
+    wfmash  baseline    1.64 s | 1xQ x5.10   | Nx1 x45.60  | NxQ x430.84
+
+--- reading it
+    1xQ (1 reference, 10 queries) and Nx1 (100 references, 1 query) are independent, so
+    those two rows separate query-side from reference-side cost: whichever is larger
+    dominates its side. NxQ is the full grid at 1000 cells, and per-cell cost should
+    match the two single-sided rows. Cost falling per cell with the count is fixed
+    per-invocation cost being amortised, not a scaling penalty. Peak RSS is a per-process
+    high-water mark.
+
+wrote ./resource-scaling.tsv
+
+--- results
+case     tool    step   references  queries  cells  threads  wall_s   user_s     sys_s    peak_rss_mb  exit
+index_1  gdiff   index  1           0        0      16       0.100    0.100      0.080    12.1         0
+index_1  wfmash  index  1           0        0      16       0.360    1.200      0.110    28.1         0
+index_N  gdiff   index  100         0        0      16       0.650    6.980      0.540    389.8        0
+index_N  wfmash  index  100         0        0      16       21.340   204.580    6.210    4709.4       0
+1x1      gdiff   map    1           1        1      16       0.030    0.100      0.020    8.0          0
+1x1      wfmash  map    1           1        1      16       1.640    14.630     1.170    823.3        0
+1xQ      gdiff   map    1           10       10     16       0.160    0.970      0.050    20.0         0
+1xQ      wfmash  map    1           10       10     16       8.370    113.150    7.160    1075.5       0
+Nx1      gdiff   map    100         1        100    16       1.330    10.320     0.210    223.5        0
+Nx1      wfmash  map    100         1        100    16       74.790   1064.660   82.050   1560.1       0
+NxQ      gdiff   map    100         10       1000   16       11.470   70.990     1.040    218.0        0
+NxQ      wfmash  map    100         10       1000   16       706.570  10572.960  636.470  1753.4       0
