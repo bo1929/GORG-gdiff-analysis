@@ -1,8 +1,8 @@
 === resource benchmark: 1 reference set vs N (alpha 22, mixed levels) ===
 results ./resource-scaling.tsv
 log     ./resource-scaling.log
-scratch /tmp/resource-scaling.jlL7WT (removed on exit)
-threads 16 (wfmash -t, gdiff --num-threads)
+scratch /tmp/resource-scaling.Ey8Qtf (removed on exit)
+threads 8 (wfmash -t, gdiff --num-threads)
 pool    29 seed(s); N=100 reference(s), Q=10 query/queries
         the pool is cycled: repeated copies get a c<K>_ contig prefix so names stay unique
 
@@ -35,29 +35,29 @@ pool    29 seed(s); N=100 reference(s), Q=10 query/queries
 
 --- mapping (queries x references)
     1x1  gdiff windows 10221, wfmash alignments 63
-    1xQ  gdiff windows 124245, wfmash alignments 654
-    Nx1  gdiff windows 1022100, wfmash alignments 5016
-    NxQ  gdiff windows 12424500, wfmash alignments 46903
+    1xQ  gdiff windows 124245, wfmash alignments 652
+    Nx1  gdiff windows 1022100, wfmash alignments 5011
+    NxQ  gdiff windows 12424500, wfmash alignments 46879
 
 --- threads actually used
-    gdiff   16
-    wfmash  16
+    gdiff   8
+    wfmash  8
 
 --- indexes, built once and shared
     references                gdiff             wfmash
-    1                 0.10 s     12 MiB      0.36 s     32 MiB
-    100               0.66 s    402 MiB     23.44 s   4704 MiB
+    1                 0.09 s     12 MiB      0.36 s     28 MiB
+    100               1.07 s    352 MiB     23.43 s   4639 MiB
 
 --- mapping (a cell is one query against one reference)
     case   cells |   gdiff s   s/cell |   wfmash s   s/cell
-    1x1        1 |      0.03   0.0300 |       1.64   1.6400
-    1xQ       10 |      0.16   0.0160 |       8.47   0.8470
-    Nx1      100 |      1.35   0.0135 |      75.72   0.7572
-    NxQ     1000 |     12.06   0.0121 |     703.80   0.7038
+    1x1        1 |      0.04   0.0400 |       2.44   2.4400
+    1xQ       10 |      0.19   0.0190 |      15.77   1.5770
+    Nx1      100 |      1.42   0.0142 |     147.89   1.4789
+    NxQ     1000 |     15.76   0.0158 |    1409.22   1.4092
 
 --- scaling against the 1x1 baseline (1xQ = 10 cells, Nx1 = 100 cells, NxQ = 1000 cells)
-    gdiff   baseline    0.03 s | 1xQ x5.33   | Nx1 x45.00  | NxQ x402.00
-    wfmash  baseline    1.64 s | 1xQ x5.16   | Nx1 x46.17  | NxQ x429.15
+    gdiff   baseline    0.04 s | 1xQ x4.75   | Nx1 x35.50  | NxQ x394.00
+    wfmash  baseline    2.44 s | 1xQ x6.46   | Nx1 x60.61  | NxQ x577.55
 
 --- reading it
     1xQ (1 reference, 10 queries) and Nx1 (100 references, 1 query) are independent, so
@@ -70,16 +70,16 @@ pool    29 seed(s); N=100 reference(s), Q=10 query/queries
 wrote ./resource-scaling.tsv
 
 --- results
-case     tool    step   references  queries  cells  threads  wall_s   user_s     sys_s    peak_rss_mb  exit
-index_1  gdiff   index  1           0        0      16       0.100    0.100      0.080    12.1         0
-index_1  wfmash  index  1           0        0      16       0.360    1.140      0.120    32.0         0
-index_N  gdiff   index  100         0        0      16       0.660    7.080      0.550    402.5        0
-index_N  wfmash  index  100         0        0      16       23.440   241.670    5.880    4704.4       0
-1x1      gdiff   map    1           1        1      16       0.030    0.090      0.020    8.0          0
-1x1      wfmash  map    1           1        1      16       1.640    14.570     1.130    835.9        0
-1xQ      gdiff   map    1           10       10     16       0.160    0.940      0.060    20.1         0
-1xQ      wfmash  map    1           10       10     16       8.470    113.040    7.390    1016.7       0
-Nx1      gdiff   map    100         1        100    16       1.350    10.650     0.270    220.3        0
-Nx1      wfmash  map    100         1        100    16       75.720   1077.920   76.420   1560.0       0
-NxQ      gdiff   map    100         10       1000   16       12.060   71.760     1.640    189.8        0
-NxQ      wfmash  map    100         10       1000   16       703.800  10572.190  595.050  1791.5       0
+case     tool    step   references  queries  cells  threads  wall_s    user_s     sys_s    peak_rss_mb  exit
+index_1  gdiff   index  1           0        0      8        0.090     0.060      0.030    12.0         0
+index_1  wfmash  index  1           0        0      8        0.360     0.890      0.080    28.0         0
+index_N  gdiff   index  100         0        0      8        1.070     7.010      0.470    352.0        0
+index_N  wfmash  index  100         0        0      8        23.430    124.040    6.220    4639.3       0
+1x1      gdiff   map    1           1        1      8        0.040     0.070      0.020    8.0          0
+1x1      wfmash  map    1           1        1      8        2.440     14.350     0.820    444.2        0
+1xQ      gdiff   map    1           10       10     8        0.190     0.730      0.050    24.0         0
+1xQ      wfmash  map    1           10       10     8        15.770    111.810    6.480    606.3        0
+Nx1      gdiff   map    100         1        100    8        1.420     6.530      0.130    215.5        0
+Nx1      wfmash  map    100         1        100    8        147.890   1079.370   81.680   1560.0       0
+NxQ      gdiff   map    100         10       1000   8        15.760    69.190     1.940    222.2        0
+NxQ      wfmash  map    100         10       1000   8        1409.220  10592.300  639.050  1576.1       0
