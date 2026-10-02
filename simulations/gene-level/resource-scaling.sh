@@ -254,12 +254,18 @@ for cse in 1x1 1xQ Nx1 NxQ; do
     python3 "$TIMEIT" --tsv "$RAW" --pair "$cse" --label gdiff_map --threads "$THREADS" -- \
         "$GDIFF" --num-threads "$THREADS" roll "$TMP/$qry.fa" "$TMP/$gs" -l "$L" -s "$S" \
         -o "$TMP/roll.$cse.tsv" > "$TMP/gdiff_map_$cse.log" 2>&1
-    # WFMASH_OUT, not a redirect: timeit prints its own summary to stdout, which would otherwise
-    # land in the PAF and be counted as an alignment.
-    WFMASH_OUT="$TMP/aln.$cse.paf" python3 "$TIMEIT" --tsv "$RAW" --pair "$cse" \
-        --label wfmash_map --threads "$THREADS" -- \
+    # wfmash writes its PAF to stdout, so a plain redirect captures it. timeit's own summary goes
+    # to stderr, which is why no WFMASH_OUT-style hook is needed -- that would have tied this to
+    # one patched build instead of any wfmash, on either platform.
+    python3 "$TIMEIT" --tsv "$RAW" --pair "$cse" --label wfmash_map --threads "$THREADS" -- \
         "$WFMASH" -I "$TMP/$idx" -t "$THREADS" -p "$PCT" -B "$TMP" "$TMP/$ref.fa" "$TMP/$qry.fa" \
-        > "$TMP/wfmash_map_$cse.log" 2>&1
+        > "$TMP/aln.$cse.paf" 2> "$TMP/wfmash_map_$cse.log"
+    if [ ! -s "$TMP/aln.$cse.paf" ]; then
+        echo "error: wfmash produced no alignments for $cse, so there is nothing to count." >&2
+        echo "       wfmash: $WFMASH" >&2
+        sed 's/^/       /' "$TMP/wfmash_map_$cse.log" >&2
+        exit 1
+    fi
     echo "    $cse  gdiff windows $(($(wc -l < "$TMP/roll.$cse.tsv") - 3))," \
          "wfmash alignments $(wc -l < "$TMP/aln.$cse.paf" | tr -d ' ')"
 done

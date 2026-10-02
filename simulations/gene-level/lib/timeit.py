@@ -11,8 +11,10 @@ Appends::
 rows merge into one indistinguishable table, so the batch drivers always pass it.
 
 macOS ``time -l`` reports maximum resident set size in bytes and GNU ``time -v`` in kbytes;
-both are normalised to MiB here. The command's own stdout/stderr are passed through, so the
-usual redirections still apply. The wrapped command's exit status becomes this script's.
+both are normalised to MiB here. The command's stdout and stderr are passed through untouched,
+so the usual redirections still apply and a tool that writes its result to stdout -- wfmash's
+PAF, for instance -- can be captured with a plain ``>``. The summary line goes to stderr so it
+cannot contaminate that stream. The wrapped command's exit status becomes this script's.
 """
 
 from __future__ import annotations
@@ -20,9 +22,11 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import resource
 import subprocess
 import sys
 import tempfile
+import time
 
 DARWIN_RE = re.compile(r"^\s*([\d.]+)\s+real\s+([\d.]+)\s+user\s+([\d.]+)\s+sys")
 RSS_RE = re.compile(r"^\s*(\d+)\s+maximum resident set size", re.M)
@@ -34,6 +38,26 @@ GNU_RE = re.compile(
     re.S,
 )
 FIELDS = ["pair", "label", "threads", "wall_s", "user_s", "sys_s", "max_rss_mb", "exit"]
+
+# macOS ships /usr/bin/time; on Linux it comes from the separate `time` package and is often
+# missing. TIMEIT_TIME_BIN exists so the fallback below can be exercised on a machine that has it.
+TIME_BIN = os.environ.get("TIMEIT_TIME_BIN", "/usr/bin/time")
+
+
+def run_with_getrusage(cmd):
+    """Fallback timer -> (rc, (wall_s, user_s, sys_s, max_rss_mb)).
+
+    Used when /usr/bin/time is unavailable. getrusage(RUSAGE_CHILDREN) reports the peak RSS and
+    CPU time of waited-for children, which is what the time binary reports too. ru_maxrss is in
+    bytes on macOS and in KiB on Linux.
+    """
+    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    t0 = time.monotonic()
+    rc = subprocess.call(cmd)
+    wall = time.monotonic() - t0
+    after = resource.getrusage(resource.RUSAGE_CHILDREN)
+    peak = after.ru_maxrss / 2**20 if sys.platform == "darwin" else after.ru_maxrss / 1024
+    return rc, (wall, after.ru_utime - before.ru_utime, after.ru_stime - before.ru_stime, peak)
 
 
 def hmstime(tok: str) -> float:
@@ -73,20 +97,24 @@ def main() -> int:
     if not cmd:
         raise SystemExit("no command given; use: timeit.py ... -- <cmd> [args]")
 
-    flag = "-l" if sys.platform == "darwin" else "-v"
-    with tempfile.NamedTemporaryFile("r", suffix=".time", delete=False) as tf:
-        report = tf.name
-    try:
-        rc = subprocess.call(["/usr/bin/time", flag, "-o", report] + cmd)
-        text = open(report).read()
-    finally:
-        os.unlink(report)
+    if os.path.exists(TIME_BIN):
+        flag = "-l" if sys.platform == "darwin" else "-v"
+        with tempfile.NamedTemporaryFile("r", suffix=".time", delete=False) as tf:
+            report = tf.name
+        try:
+            rc = subprocess.call([TIME_BIN, flag, "-o", report] + cmd)
+            text = open(report).read()
+        finally:
+            os.unlink(report)
 
-    row = parse(text)
-    if row is None:
-        print(f"timeit: could not parse the time report for {args.label}:\n{text}",
-              file=sys.stderr)
-        row = (float("nan"),) * 4
+        row = parse(text)
+        if row is None:
+            print(f"timeit: could not parse the time report for {args.label}:\n{text}",
+                  file=sys.stderr)
+            row = (float("nan"),) * 4
+    else:
+        rc, row = run_with_getrusage(cmd)
+
     wall, user, sysd, rss = row
 
     new = not os.path.exists(args.tsv) or os.path.getsize(args.tsv) == 0
@@ -95,7 +123,7 @@ def main() -> int:
             fh.write("\t".join(FIELDS) + "\n")
         fh.write(f"{args.pair}\t{args.label}\t{args.threads}\t{wall:.3f}\t{user:.3f}\t"
                  f"{sysd:.3f}\t{rss:.1f}\t{rc}\n")
-    print(f"    {args.label}: {wall:.2f}s wall, {rss:.1f} MiB peak, exit {rc}")
+    print(f"    {args.label}: {wall:.2f}s wall, {rss:.1f} MiB peak, exit {rc}", file=sys.stderr)
     return rc
 
 

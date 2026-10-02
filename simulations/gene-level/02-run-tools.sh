@@ -100,12 +100,19 @@ run_one() {  # run_one <seed> <alpha> <variant>
     rm -f "$out/ref.fa.fai" "$out/qry.fa.fai"
     python3 "$MAKEFAI" "$out/ref.fa" "$out/qry.fa" >/dev/null
 
-    # WFMASH_OUT, not a redirect: timeit.py prints its own summary to stdout, which would
-    # otherwise land in the PAF.
-    WFMASH_OUT="$out/aln.paf" python3 "$TIMEIT" --tsv "$out/resources.tsv" --pair "$variant" \
+    # wfmash writes its PAF to stdout, so a plain redirect captures it. timeit's own summary goes
+    # to stderr, which is why no WFMASH_OUT-style hook is needed -- that would have tied this to
+    # one patched build instead of any wfmash, on either platform.
+    python3 "$TIMEIT" --tsv "$out/resources.tsv" --pair "$variant" \
         --label wfmash --threads "$THREADS" -- \
         "$WFMASH" -t "$THREADS" -p "$PCT" -B "$out" "$out/ref.fa" "$out/qry.fa" \
-        > "$out/wfmash.log" 2>&1
+        > "$out/aln.paf" 2> "$out/wfmash.log"
+    if [ ! -s "$out/aln.paf" ]; then
+        echo "error: wfmash produced no alignments for $variant." >&2
+        echo "       wfmash: $WFMASH" >&2
+        sed 's/^/       /' "$out/wfmash.log" >&2
+        exit 1
+    fi
     # --num-threads is a GLOBAL gdiff option: it must precede the subcommand.
     python3 "$TIMEIT" --tsv "$out/resources.tsv" --pair "$variant" --label gdiff_sketch \
         --threads "$THREADS" -- \
