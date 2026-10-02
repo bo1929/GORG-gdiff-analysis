@@ -4,14 +4,16 @@
 #
 #   ./resource-scaling.sh [options]
 #
-# Three cases, each timed against a single shared index:
+# Four cases, each timed against a single shared index:
 #
 #   1x1   1 cell      baseline
 #   1xQ   Q cells     query scaling      (1 reference, Q queries)
 #   Nx1   N cells     reference scaling  (N references, 1 query)
+#   NxQ   N*Q cells   the full grid      (N references, Q queries)
 #
-# The number of references (N) and the number of queries (Q) are independent, so either side can
-# be varied on its own. N and Q cells respectively: there is no NxQ case, which would cost N*Q.
+# The number of references (N) and the number of queries (Q) are independent, so either side can be
+# varied on its own. NxQ costs N*Q cells and will dominate a run at large N or Q -- at N=Q=100 that
+# is 10,000 cells -- so keep both modest when the full grid is wanted.
 #
 # IN   --seeds LIST            seed pool to draw from [every seed in genomes/]
 #      -n, --n INT             references to use [10]. If N exceeds the pool it is cycled, and the
@@ -242,11 +244,12 @@ python3 "$TIMEIT" --tsv "$RAW" --pair index_N --label wfmash_index --threads "$T
 # ---------------------------------------------------------------- the three cases
 echo
 echo "--- mapping (queries x references)"
-for cse in 1x1 1xQ Nx1; do
+for cse in 1x1 1xQ Nx1 NxQ; do
     case "$cse" in
         1x1) ref=ref1; qry=qry1; gs=ref1.gs; idx=idx1 ;;
         1xQ) ref=ref1; qry=qryQ; gs=ref1.gs; idx=idx1 ;;
         Nx1) ref=refN; qry=qry1; gs=refN.gs; idx=idxN ;;
+        NxQ) ref=refN; qry=qryQ; gs=refN.gs; idx=idxN ;;
     esac
     python3 "$TIMEIT" --tsv "$RAW" --pair "$cse" --label gdiff_map --threads "$THREADS" -- \
         "$GDIFF" --num-threads "$THREADS" roll "$TMP/$qry.fa" "$TMP/$gs" -l "$L" -s "$S" \
@@ -272,6 +275,7 @@ CASES = {
     "1x1": ("map", 1, 1, 1),
     "1xQ": ("map", 1, q, q),
     "Nx1": ("map", n, 1, n),
+    "NxQ": ("map", n, q, n * q),
 }
 FIELDS = ["case", "tool", "step", "references", "queries", "cells", "threads",
           "wall_s", "user_s", "sys_s", "peak_rss_mb", "exit"]
@@ -320,23 +324,25 @@ print()
 print("--- mapping (a cell is one query against one reference)")
 print(f"    {'case':<5} {'cells':>6} | {'gdiff s':>9} {'s/cell':>8} | "
       f"{'wfmash s':>10} {'s/cell':>8}")
-for case in ("1x1", "1xQ", "Nx1"):
+for case in ("1x1", "1xQ", "Nx1", "NxQ"):
     c = CASES[case][3]
     g, w = wall(case, "gdiff"), wall(case, "wfmash")
     print(f"    {case:<5} {c:>6} | {g:>9.2f} {g / c:>8.4f} | {w:>10.2f} {w / c:>8.4f}")
 
 print()
-print(f"--- scaling against the 1x1 baseline (1xQ = {q} cells, Nx1 = {n} cells)")
+print(f"--- scaling against the 1x1 baseline "
+      f"(1xQ = {q} cells, Nx1 = {n} cells, NxQ = {n * q} cells)")
 for tool in ("gdiff", "wfmash"):
     b = wall("1x1", tool)
     print(f"    {tool:<7} baseline {b:7.2f} s | 1xQ x{wall('1xQ', tool) / b:<6.2f} "
-          f"| Nx1 x{wall('Nx1', tool) / b:<6.2f}")
+          f"| Nx1 x{wall('Nx1', tool) / b:<6.2f} | NxQ x{wall('NxQ', tool) / b:<6.2f}")
 
 print()
 print("--- reading it")
-print(f"    1xQ (1 reference, {q} queries) and Nx1 ({n} references, 1 query) are independent,")
-print("    so the two columns separate query-side from reference-side cost: whichever is")
-print("    larger dominates its side. Per-cell cost falling with the count is fixed")
+print(f"    1xQ (1 reference, {q} queries) and Nx1 ({n} references, 1 query) are independent, so")
+print("    those two rows separate query-side from reference-side cost: whichever is larger")
+print(f"    dominates its side. NxQ is the full grid at {n * q} cells, and per-cell cost should")
+print("    match the two single-sided rows. Cost falling per cell with the count is fixed")
 print("    per-invocation cost being amortised, not a scaling penalty. Peak RSS is a per-process")
 print("    high-water mark.")
 print()
