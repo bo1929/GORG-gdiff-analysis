@@ -13,13 +13,13 @@ library(ggforce)
 
 dfg <- vroom("results/genes-joined-all.tsv.gz")
 dfs <- vroom("results/genome-all.tsv.gz")
-dfr <- vroom("resource-one-to-many/resource-scaling-nt4-N100.tsv")
+dfr <- vroom("resource-scaling-nt8-10x100.tsv")
 
 dfr %>%
-  filter(case %in% c("1xN", "index_N")) %>%
-  filter(threads == 4) %>%
+  filter(case %in% c("NxQ", "index_N")) %>%
+  filter(threads == 8) %>%
   mutate(case = case_when(
-    case == "1xN" ~ "Map 1x100",
+    case == "NxQ" ~ "Map 10x100",
     case == "index_N" ~ "Index 100",
     TRUE ~ case
   )) %>%
@@ -41,10 +41,10 @@ dfr %>%
   # coord_cartesian(ylim = c(0, 60))
 
 dfr %>%
-  filter(case %in% c("1xN", "index_N")) %>%
-  filter(threads == 4) %>%
+  filter(case %in% c("NxQ", "index_N")) %>%
+  filter(threads == 8) %>%
   mutate(case = case_when(
-    case == "1xN" ~ "Map 1x100",
+    case == "NxQ" ~ "Map 10x100",
     case == "index_N" ~ "Index 100",
     TRUE ~ case
   )) %>%
