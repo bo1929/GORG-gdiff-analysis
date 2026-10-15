@@ -32,9 +32,11 @@ merge(df, df_ani) %>%
   #    mutate(x = 0.0, y = 0.25),
   #  aes(x=x, y=y, label=paste0("MAE = ", round(mae, 2), "")), hjust=0, vjust=0, show.legend = F, inherit.aes = F
   # ) +
-  theme_minimal_grid(font_size = 9) +
+  theme_bw() +
   panel_border(color = "black", size = 0.5) +
+  theme(legend.key.height = unit(0.4, "cm"),
+        legend.key.width = unit(0.4, "cm")) +
   coord_cartesian(xlim=c(0, 0.3), ylim=c(0, 0.3)) +
   # labs(x="BLASTn", y=TeX(r'(gdiff $D$)'), color="ANI", title="Distances between annotated genes in marine microbes")
-  labs(x="BLASTn", y="gdiff", color="ANI", title="Distances between annotated genes")
-ggsave("./gene-dist-compare.pdf", width=3.75, height = 3.45)
+  labs(x="BLASTn", y="gdiff", color="ANIb") #, title="Distances between annotated genes")
+ggsave("./gene-dist-compare.pdf", width=3, height = 2.25)

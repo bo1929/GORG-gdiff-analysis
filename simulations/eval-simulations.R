@@ -82,7 +82,7 @@ df %>%
   stat_summary(geom="line", aes(group=method, color=method), alpha=0.66, show.legend = FALSE, position = position_dodge2()) +
   stat_summary(aes(color=method), fun.data = mean_se, geom = "errorbar", width = 0.3) +
   # labs(y=TeX(r'(${\hat{D}}/{D}$)'), x="Missing portion (%)", color="Method") +
-  labs(y=TeX(r'(Mean Absolute Error (%))'), x="Missing portion (%)", color="Method") +
+  labs(y=TeX(r'(MAPE)'), x="Missing portion (%)", color="Method") +
   theme_bw() +
   scale_y_log10() +
   scale_y_continuous(labels = percent, trans="log", breaks = c(0.001, 0.01, 0.1, 1)) +
@@ -110,7 +110,7 @@ df %>%
   # stat_summary(geom="line", aes(group=method, color=method), show.legend = FALSE, position = position_dodge2()) +
   # stat_summary(color="gray20", fun.data = mean_se, geom = "errorbar", width = 0.2) +
   # labs(y=TeX(r'(${\hat{D}}/{D}$)'), x="Missing portion (%)", color="Method") +
-  labs(y=TeX(r'(Absolute Error (%))'), x="Methods", fill="Method") +
+  labs(y=TeX(r'(Absolute Percent Error)'), x="Methods", fill="Method") +
   theme_minimal_hgrid(font_size = 11) +
   # scale_y_log10() +
   scale_y_continuous(labels = percent, transform = "log", breaks = c(0.0001, 0.001, 0.01, 0.1, 1, 10)) +
@@ -130,12 +130,32 @@ df %>%
   aes(x=1-true_ani/100, y=((100-ani_pct)-(100-true_ani))/(100-true_ani), color=method) +
   geom_point(alpha=0.1, size=0.25) +
   stat_smooth(alpha=0.65, se=F) +
-  labs(y=TeX(r'(Percentage Error)'), x="D", color="Method") +
+  labs(y=TeX(r'(Bias (%))'), x="D", color="Method") +
   theme_minimal_grid(font_size=11) +
   scale_y_continuous(labels = percent) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc)
-ggsave("./S-pe-lt99-stat_smooth-high-wmissing.pdf", width = 5, height = 3)
+ggsave("./S-bias-lt99-stat_smooth-high-wmissing.pdf", width = 4, height = 2.5)
+
+bb <- df %>%
+  mutate(true_ani_bin=cut(1-true_ani/100, c(0.01, 0.05, 0.1, 0.2))) %>%
+  filter(ratevar == "high") %>%
+  filter(true_ani <= 99) %>%
+  filter(missing_percent == 0) %>%
+  ggplot() +
+  # facet_grid(missing_percent_bin~true_ani_bin, scales = "free_y") +
+  # aes(x=variation, y=(ani_pct)/(true_ani), fill=method) +
+  geom_hline(yintercept = 0, linetype = 14) +
+  aes(x=1-true_ani/100, y=((100-ani_pct)-(100-true_ani))/(100-true_ani), color=method) +
+  geom_point(alpha=0.1, size=0.25) +
+  stat_smooth(alpha=0.65, se=F) +
+  labs(y=TeX(r'(Bias (%))'), x="D", color="Method") +
+  theme_minimal_grid(font_size=11) +
+  scale_y_continuous(labels = percent) +
+  scale_color_manual(values = mc) +
+  scale_fill_manual(values = mc)
+bb
+ggsave("./S-bias-lt99-stat_smooth-high-womissing.pdf", width = 4, height = 2.5)
 
 df %>%
   mutate(true_ani_bin=cut(1-true_ani/100, c(0.01, 0.05, 0.1, 0.2))) %>%
@@ -148,12 +168,12 @@ df %>%
   aes(x=1-true_ani/100, y=((100-ani_pct)-(100-true_ani))/(100-true_ani), color=method) +
   geom_point(alpha=0.1, size=0.25) +
   stat_smooth(alpha=0.65, se=F) +
-  labs(y=TeX(r'(Percentage Error)'), x="D", color="Method") +
+  labs(y=TeX(r'(Bias (%))'), x="D", color="Method") +
   theme_minimal_grid(font_size=11) +
   scale_y_continuous(labels = percent) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc)
-ggsave("./S-pe-lt99-stat_smooth-rate-complete.pdf", width = 5, height = 3)
+ggsave("./S-bias-lt99-stat_smooth-rate-complete.pdf", width = 5, height = 3)
 
 df %>% filter(true_ani <= 99) %>%
   filter(missing_percent == 0) %>%
@@ -165,12 +185,12 @@ df %>% filter(true_ani <= 99) %>%
   geom_hline(yintercept = 0, linetype = 14) +
   aes(color=method) +
   geom_segment(aes(x = true_ani_bin+as.numeric(as.factor(method))/1000, xend = true_ani_bin+as.numeric(as.factor(method))/1000, y = low, yend=high), arrow = grid::arrow(type="closed", length = unit(5, "pt"))) +
-  labs(y=TeX(r'(Mean Percentage Error)'), x="D", color="Method") +
+  labs(y=TeX(r'(Bias (%))'), x="D", color="Method") +
   theme_minimal_grid(font_size=11) +
   scale_y_continuous(labels = percent) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc)
-ggsave("./S-mpe-lt99-ratevar_change.pdf", width = 5, height = 3)
+ggsave("./S-bias-lt99-ratevar_change.pdf", width = 5, height = 3)
 
 df %>% filter(true_ani <= 99) %>%
   filter(ratevar == "high") %>%
@@ -184,12 +204,12 @@ df %>% filter(true_ani <= 99) %>%
   geom_hline(yintercept = 0, linetype = 14) +
   aes(color=method) +
   geom_segment(aes(x = true_ani_bin+as.numeric(as.factor(method))/1000, xend = true_ani_bin+as.numeric(as.factor(method))/1000, y = `FALSE`, yend=`TRUE`), arrow = grid::arrow(type="closed", length = unit(5, "pt"))) +
-  labs(y=TeX(r'(Mean Percentage Error)'), x="D", color="Method") +
+  labs(y=TeX(r'(Bias (%))'), x="D", color="Method") +
   theme_minimal_grid(font_size=11) +
   scale_y_continuous(labels = percent) +
   scale_color_manual(values = mc) +
   scale_fill_manual(values = mc)
-ggsave("./S-mpe-lt99-missing_change.pdf", width = 5, height = 3)
+ggsave("./S-bias-lt99-missing_change.pdf", width = 5, height = 3)
 
 df %>%
   filter(ratevar == "high") %>%
@@ -212,28 +232,29 @@ df %>%
   scale_fill_manual(values = mc)
 ggsave("./S-bias-lt100-high-complete.pdf", width = 8, height = 4.5)
 
-df %>%
+rv <- df %>%
   filter(missing_percent == 0) %>%
   filter(true_ani != 100) %>%
-  mutate(true_ani_bin=cut(1-true_ani/100, c(0, 0.01, 0.1, 0.2))) %>%
+  mutate(true_ani_bin=cut(1-true_ani/100, c(0, 0.01, 0.05, 0.1, 0.15, 0.2))) %>%
   ggplot() +
-  facet_wrap(~true_ani_bin, scales = "fixed") +
+  facet_wrap(~true_ani_bin, scales = "fixed", nrow=1) +
   aes(x=reorder(ratevar, ani_pct/true_ani), y=abs((100-ani_pct)-(100-true_ani))/(100-true_ani), color=method) +
   geom_hline(yintercept = 0, linetype = 14) +
-  stat_summary(geom="line", alpha=0.66, aes(group=method)) +
+  stat_summary(geom="line", alpha=0.75, aes(group=method)) +
   # stat_summary(aes(shape = method)) +
-  stat_summary(aes(shape=method)) +
+  stat_summary(aes(shape=method), alpha=0.75) +
   # geom_point(alpha=0.1, size=0.15) +
   # geom_violin(alpha=0.1, size=0.15) +
   # labs(y=TeX(r'(${\hat{D}}/{D}$)'), x="Rate variation") +
-  labs(y=TeX(r'(Mean Absolute Error (%))'), x="Rate variation", color="Method", shape="Method") +
+  labs(y=TeX(r'(MAPE)'), x="Rate variation", color="Method", shape="Method") +
   theme_bw() +
   theme(panel.grid.minor.x = element_blank(), panel.grid.major.x = element_blank()) +
   scale_color_manual(values = mc) +
   scale_color_manual(values = mc) +
   scale_y_continuous(labels=percent) +
   scale_shape_manual(values = c(16, 16, 17, 16, 16))
-ggsave("./S-mape-lt100-ratevar_change-alt.pdf", width = 6, height = 3)
+rv
+ggsave("./S-mape-lt100-ratevar_change-alt.pdf", width = 6, height = 2.5)
 
 df %>%
   filter(true_ani != 100) %>%
@@ -303,7 +324,7 @@ ggsave("./S-mae-gt99.pdf", width = 8, height = 2.5)
 mc = c("#809D6F", "#D0D55C", "#BD4030", "#C3A97E", "#769DA6", "#A69E33", "#734002", "#595622", "#8C873F",  "#474B71")
 
 # Comparing different configurations of gdiff
-if (F) {
+if (T) {
 df_gdiff <- merge(
   rbind(
     vroom("results/distances/gdiff-frac50-k23-w23-h9-l500-n1000-delta3-chisq10828-p66.tsv") %>%  mutate(method="gdiff: -h 9 -l 500 --frac 0.5"),
@@ -453,3 +474,103 @@ if (T) {
     theme(legend.position = "bottom", legend.direction = "vertical")
   ggsave("./S-dashing2-config-compare.pdf", width = 5, height = 4)
 }
+
+library(ggpmisc)
+
+LR_UB_THR   <- 6.635
+MIN_PORTION <- 0.66
+
+select_sample <- function(d, lr_ub, lr_ub_thr = LR_UB_THR, min_portion = MIN_PORTION) {
+  kepp <- is.finite(d)
+  d <- d[kepp]; lr_ub <- lr_ub[kepp]
+  if (!length(d)) return(numeric(0))
+  pass <- !is.na(lr_ub) & lr_ub > lr_ub_thr
+  if (sum(pass) / length(d) > min_portion) d[pass] else d
+}
+
+pair_ani <- function(d, lr_ub) {
+  sel <- select_sample(d, lr_ub)
+  dplyr::tibble(
+    ani_pct      = if (length(sel)) 100 - 100 * mean(sel) else NA_real_,
+    stdev_pident = if (length(sel) > 1) 100 * sd(sel) else NA_real_
+  )
+}
+
+read_samples <- function(path) {
+  vroom(path, delim = "\t", show_col_types = FALSE) %>%
+    filter(grepl("a5", genome_a), grepl("_p", genome_a)) %>%
+    mutate(genome_a = gsub("_a5", "", genome_a),
+           lr_ub = suppressWarnings(as.numeric(lr_ub)))
+}
+
+# ---------------- Load metadata ----------------
+meta <- vroom("metadata.tsv", delim = "\t", show_col_types = FALSE)
+
+# a5 keys, pruned (_p), with true ANI / missing% (like eval-simulations.R)
+dfm <- meta %>%
+  filter(grepl("a5", key), grepl("_p", key)) %>%
+  mutate(genome_b = seed,
+         genome_a_key = gsub("_a5", "", key)) %>%
+  mutate(missing_percent = if_else(is.na(missing_percent), 0, missing_percent)) %>%
+  dplyr::select(genome_a_key, genome_b, true_ani, missing_percent)
+
+# ---------------- BLAST (results-ORFvANI/results-combined.csv) ----------------
+# genome_b = base (_p0_s0), genome_a = variant (_pNN_sNN). Strip the "_c<x>"
+# suffix / "_a5" marker so genome_a matches metadata's genome_a_key.
+blast <- vroom("./results-ORFvANI/results-combined.csv.gz", delim = ",", show_col_types = FALSE) %>%
+  filter(grepl("_p0_s0", genome_b)) %>%
+  mutate(
+    genome_b = gsub("_gnd00000_.*", "", genome_b),
+    genome_a = gsub("_c.*", "", genome_a)
+  ) %>%
+  mutate(genome_a = gsub("_a5", "", genome_a)) %>%
+  transmute(genome_a, genome_b, ani_pct = mean_pident, stdev_pident, method = "BLAST")
+
+# ---------------- gdiff samples (lr_ub present -> filtered) ----------------
+gdiff <- read_samples("results/samples/gdiff-frac50-k23-w23-h9-l333-n1000-delta3.tsv") %>%
+  group_by(genome_a, genome_b) %>%
+  summarise(pair_ani(d, lr_ub), .groups = "drop") %>%
+  mutate(method = "gdiff")
+
+# ---------------- fastANI samples (no lr_ub -> unfiltered) ----------------
+fastani <- read_samples("results/samples/fastani-frag1000.tsv") %>%
+  group_by(genome_a, genome_b) %>%
+  summarise(pair_ani(d, lr_ub), .groups = "drop") %>%
+  mutate(method = "fastANI")
+
+# ---------------- Combine with metadata (CV) ----------------
+cv <- bind_rows(
+  gdiff,
+  fastani,
+  blast
+) %>%
+  inner_join(dfm, by = c(genome_a = "genome_a_key", genome_b = "genome_b")) %>%
+  filter(true_ani != 100) %>%
+  mutate(cv_pct = stdev_pident / (100 - ani_pct))
+
+# ---------------- Figure ----------------
+cv <- cv %>% filter(missing_percent == 0) %>%
+  filter(true_ani < 99) %>%
+  mutate(true_ani_bin = cut(true_ani, c(80, 99, 100), include.lowest = TRUE)) %>%
+  ggplot() +
+  # aes(x = true_ani, y = cv_pct, color = method) +
+  # geom_point(alpha = 0.4) +
+  # facet_wrap(~true_ani_bin, scale = "free") +
+  geom_hline(yintercept = 1 / sqrt(5), linetype = "dashed") +
+  # stat_smooth(method = "lm") +
+  # stat_poly_eq(aes(label = after_stat(eq.label)), formula = y ~ x, parse = TRUE) +
+  geom_violin(aes(y=cv_pct, x=method, fill=method), draw_quantiles = c(0.25, 0.5, 0.75)) +
+  stat_summary(aes(y=cv_pct, x=method)) +
+  theme_bw() +
+  scale_y_continuous(labels = percent) +
+  labs(x = "", y = "Coefficient of variance", fill="Method") +
+  scale_fill_manual(values = c("#474B71", "#D0D55C", "#BD4030"))
+cv
+plot_grid(
+  rv + theme(legend.position = "none"),
+  bb + theme(legend.position = "none"),
+  cv + theme(legend.position = "none"),
+  nrow = 1,
+  rel_widths = c(4.75, 3.25, 2.5)
+)
+ggsave2("./gorg-simulations-ani.pdf", width = 9, height = 2)

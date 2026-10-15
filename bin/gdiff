@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Arch dispatcher for the bundled gdiff builds.
-# Point scripts here instead of at a specific binary so they run on
-# macOS (arm64) and Linux (x86-64) without edits.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "$(uname -s)" = "Darwin" ] && [ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" = "1" ]; then
+  if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ]; then
+    exec "$HERE/gdiff-osx" "$@"
+  fi
+fi
 case "$(uname -s)/$(uname -m)" in
   Darwin/arm64)             exec "$HERE/gdiff-osx" "$@" ;;
   Linux/x86_64|Linux/amd64) exec "$HERE/gdiff-x86" "$@" ;;

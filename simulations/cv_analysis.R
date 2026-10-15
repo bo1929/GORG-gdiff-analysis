@@ -44,7 +44,7 @@ dfm <- meta %>%
 # ---------------- BLAST (results-ORFvANI/results-combined.csv) ----------------
 # genome_b = base (_p0_s0), genome_a = variant (_pNN_sNN). Strip the "_c<x>"
 # suffix / "_a5" marker so genome_a matches metadata's genome_a_key.
-blast <- vroom("results-ORFvANI/results-combined.csv", delim = ",", show_col_types = FALSE) %>%
+blast <- vroom("./results-ORFvANI/results-combined.csv.gz", delim = ",", show_col_types = FALSE) %>%
   filter(grepl("_p0_s0", genome_b)) %>%
   mutate(
     genome_b = gsub("_gnd00000_.*", "", genome_b),
@@ -73,24 +73,24 @@ cv <- bind_rows(
 ) %>%
   inner_join(dfm, by = c(genome_a = "genome_a_key", genome_b = "genome_b")) %>%
   filter(true_ani != 100) %>%
-  mutate(cv_pct = stdev_pident / (100 - ani_pct) * 100)
+  mutate(cv_pct = stdev_pident / (100 - ani_pct))
 
 # ---------------- Figure ----------------
-cv %>% filter(missing_percent == 0) %>%
+cv <- cv %>% filter(missing_percent == 0) %>%
   filter(true_ani < 99) %>%
   mutate(true_ani_bin = cut(true_ani, c(80, 99, 100), include.lowest = TRUE)) %>%
   ggplot() +
   # aes(x = true_ani, y = cv_pct, color = method) +
   # geom_point(alpha = 0.4) +
   # facet_wrap(~true_ani_bin, scale = "free") +
-  geom_hline(yintercept = 1 / sqrt(5) * 100, linetype = "dashed") +
+  geom_hline(yintercept = 1 / sqrt(5), linetype = "dashed") +
   # stat_smooth(method = "lm") +
   # stat_poly_eq(aes(label = after_stat(eq.label)), formula = y ~ x, parse = TRUE) +
   geom_violin(aes(y=cv_pct, x=method, fill=method), draw_quantiles = c(0.25, 0.5, 0.75)) +
   stat_summary(aes(y=cv_pct, x=method)) +
   theme_bw() +
-  # scale_y_log10() +
-  labs(x = "ANI", y = "Coefficient of variance (%)", fill="Method") +
+  scale_y_continuous(labels = percent) +
+  labs(x = "", y = "Coefficient of variance", fill="Method") +
   scale_fill_manual(values = c("#474B71", "#D0D55C", "#BD4030"))
-
-ggsave("./S-coef-variance-simulations.pdf", width = 4.5, height = 3)
+cv
+ggsave("./S-coef-variance-simulations.pdf", width = 3.33, height = 2)
