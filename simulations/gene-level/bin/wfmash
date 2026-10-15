@@ -1,1 +1,19 @@
-wfmash-macos-arm64
+#!/usr/bin/env bash
+# Arch dispatcher for the bundled wfmash builds.
+# Point scripts here instead of at a specific binary so they run on
+# macOS (arm64) and Linux (x86-64) without edits.
+#
+# NOTE: wfmash-macos-arm64 is dynamically linked against its build-tree
+# libraries (libwflign/libwfa2) which are not bundled, so on macOS it starts
+# only once those dylibs sit next to it; export WFMASH to bypass it with a
+# working install (the pipeline honours $WFMASH).
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64)             exec "$HERE/wfmash-macos-arm64" "$@" ;;
+  Linux/x86_64|Linux/amd64) exec "$HERE/wfmash-v0.24.2-linux-x86_64" "$@" ;;
+  *)
+    echo "wfmash: unsupported platform $(uname -s)/$(uname -m)" >&2
+    exit 127
+    ;;
+esac

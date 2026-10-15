@@ -1,5 +1,7 @@
 /sketches/
-simulations/gene-level/results/*
+# Per-run gene-level artifacts. The collected tables in this directory
+# (plan, metrics, genome-all, genes-joined-all, resources-all) are tracked on purpose.
+simulations/gene-level/results/mutated_*/
 
 *.gs
 *.gdsk
@@ -7,6 +9,10 @@ simulations/gene-level/results/*
 *.tmp
 *.Rhistory
 *.pdf
+# Benchmark runs: the reference outputs under resource-benchmarking/output-<seed>/
+# are tracked on purpose (plot-resource.R reads their resources.tsv, and
+# run_benchmarks.sh skips methods already recorded there); this line only keeps
+# future runs out of the index.
 resource-benchmarking/output-*
 
 # Python
@@ -43,7 +49,6 @@ windows.fa
 /scripts/estimate-sample-ani
 /scripts/dip-only
 /scripts/dip-pairs
-/scripts/dip-only
 /scripts/reconcile-gdiff-sample
 /scripts/summarize-gdiff-sample
 
