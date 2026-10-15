@@ -1,3 +1,4 @@
+/sketches/
 simulations/gene-level/results/*
 
 *.gs
@@ -39,6 +40,8 @@ windows.fa
 **/.work_*/
 
 # Compiled helpers from scripts/Makefile (sources are tracked, binaries are not)
+/scripts/estimate-sample-ani
+/scripts/dip-only
 /scripts/dip-pairs
 /scripts/dip-only
 /scripts/reconcile-gdiff-sample
