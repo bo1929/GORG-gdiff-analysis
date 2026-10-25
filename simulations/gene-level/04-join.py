@@ -4,7 +4,8 @@
   04-join.py                        # the whole design
   04-join.py --variant V --level F  # one pair
 
-  truth    mean simulated per-position divergence over the gene span, from stage 03
+  truth    realised substitutions over the whole gene span, from stage 03 (counted from the
+           reference and query sequences, so no alignment is involved)
   d_gd     unweighted mean of the roll windows lying entirely inside the gene
   wf_rate  mismatches / (matches + mismatches) over the gene span, insertions in neither term
   wf_cov   aligned bp / gene length

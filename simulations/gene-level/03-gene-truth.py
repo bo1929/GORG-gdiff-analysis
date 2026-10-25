@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""STAGE 03 -- exact per-gene truth from the simulator's own weights.
+"""STAGE 03 -- exact per-gene truth from the sequences.
 
   03-gene-truth.py                 # the whole design
   03-gene-truth.py --variant V     # one pair
 
-truth(gene) is the mean of scale*w_i over the gene span, with scale = realised/mean(w). scale
-comes from the sequences, not from gnd_aad.txt -- see stage 01.
+truth(gene) is the realised substitution fraction over the whole gene span: the positions where
+the query base differs from the reference, divided by the gene length. The simulation is
+substitution-only, so reference and query coordinates correspond 1:1 and no alignment is needed.
+w_mean (the simulator's weight mean, rescaled to the realised genome-wide rate) is written for
+provenance only: it is the *expected* per-gene rate, which fluctuates gene by gene around the
+realised count, and at low divergence that fluctuation is large.
 
 --prefix MUST match stage 02's --prefix, or no window will land inside any gene.
 """
@@ -107,17 +111,26 @@ def run_one(simdir, outdir, seed, alpha, variant, k, l, contig_prefix, gnd_tol):
         )
 
     genes = read_genes(g["genes_faa"], names)
+    # Per-gene truth is counted from the two sequences at the same coordinates, so the contigs
+    # need an offset table (read_seq concatenates them in FASTA order).
+    offsets = np.cumsum([0] + [length for _, length in contigs])
+    ref_b = np.frombuffer(ref.encode(), dtype=np.uint8)
+    qry_b = np.frombuffer(qry.encode(), dtype=np.uint8)
     lens, tr = [], []
     with open(out, "w") as fh:
         fh.write(f"# realised divergence measured from the sequences: {realised:.10g}\n")
         fh.write(f"# gnd_aad.txt: {label:.10g}   scale = realised/mean(w) = {scale:.10g}\n")
+        fh.write("# truth = realised substitutions over the gene span, counted from ref vs query\n")
         fh.write("contig\tgene\tstart\tend\tstrand\tgene_len\tw_mean\ttruth\n")
         for gene, contig, s, e, strand in genes:
-            w = rows[order[contig]][s - 1 : e]
-            if w.size == 0:
+            i = order[contig]
+            base = int(offsets[i])
+            b1, b2 = base + s - 1, base + min(e, contigs[i][1])
+            if b2 <= b1:
                 continue
+            w = rows[i][s - 1 : e]
             w_mean = float(w.mean())
-            truth = w_mean * scale
+            truth = float(np.count_nonzero(ref_b[b1:b2] != qry_b[b1:b2])) / (b2 - b1)
             lens.append(e - s + 1)
             tr.append(truth)
             fh.write(f"{contig_prefix}{contig}\t{gene}\t{s}\t{e}\t{strand}\t" f"{e - s + 1}\t{w_mean:.10g}\t{truth:.10g}\n")

@@ -90,6 +90,7 @@ FIELDS = [
     "excl_genes_pct",
     "excl_bp_pct",
     "n",
+    "coverage_pct",
     "mean_truth",
     "mean_est",
     "bias",
@@ -157,6 +158,9 @@ def main() -> int:
         gnds = sorted({num(r["gnd"]) for r in g})
         mgnd = f"{sum(gnds)/len(gnds):.6f}" if gnds else "NA"
         nin = sum(1 for r in g if int(r["included"]) == 1)
+        # coverage denominator: every gene except the length filter and no-window-inside
+        n_elig = sum(1 for r in g
+                     if r.get("reason", ".") not in ("shorter_than_window", "no_window_inside"))
         bp = sum(int(r["gene_len"]) for r in g)
         bpin = sum(int(r["gene_len"]) for r in g if int(r["included"]) == 1)
         for method in ("gdiff", "intersection", "wfmash"):
@@ -173,6 +177,8 @@ def main() -> int:
                 excl_genes_pct=f"{100*(ntot-nin)/ntot:.2f}",
                 excl_bp_pct=f"{100*(bp-bpin)/bp:.2f}" if bp else "NA",
                 n=len(xs),
+                # genes this method can score / eligible genes (see n_elig above)
+                coverage_pct=f"{100*len(xs)/n_elig:.2f}" if n_elig else "NA",
             )
             if len(xs) >= 3:
                 bias = sum(a - b for a, b in zip(xs, ys)) / len(xs)
