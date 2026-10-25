@@ -100,40 +100,6 @@ both (the intersection). Coverage treats a gene as a miss when the method has no
 denominator that removes only the length-filter and no-window-inside cases. The bar heights are
 MAE; the labels above them are that coverage.
 
-## QQ against truth
-
-`qq-roll-truth.R` is an RStudio script: edit the config block at the top and source it (or run
-`Rscript qq-roll-truth.R`). It reads `plan.tsv.gz` and, per pair, `genes.tsv`, `ref.fa` and
-`ref.gs`; T is the per-gene mismatch fraction (mismatches over the gene span / `gene_len`). R is
-either re-rolled with `gdiff` (`run_roll = TRUE`; window from the mean gene length, `-s = -l`) or
-read from the pair's `roll.tsv`. The true GND is the **full-sequence** mismatch fraction (total
-mismatches / genome bp), so it differs between the gene-only and uniform-intergenic sets.
-
-Per pair the script draws 500 points from T and R and fits the gdiff map hurdle gamma to R (floor
-mass p0, moment-started gamma MLE above it). The figure has one column per level (0.1, 1, 5, 10,
-18%) and two rows for the rate variation; each strip shows the level's rounded full-sequence GND
-range. Thin lines are the per-pair QQ curves, coloured by the continuous true GND. `show_gamma`
-is TRUE and `show_roll` FALSE by default; set either or both. `p0_from = "roll"` uses the roll
-floor fraction as the hurdle atom; `p0_from = "genes"` uses the fraction of T == 0, which aligns
-the zero atoms (see the note below).
-
-The default writes `qq-roll-truth.png` next to the script; the commented uniform config writes
-`qq-roll-truth-uniform.png`. Needs R with `data.table` and `ggplot2`, and `gdiff` for
-`run_roll = TRUE`.
-
-```bash
-Rscript qq-roll-truth.R     # or source in RStudio
-```
-
-![QQ, intergenic invariant](qq-roll-truth.png)
-
-![QQ, uniform intergenic mutations](qq-roll-truth-uniform.png)
-
-At low divergence the gene zero atom P(T = 0) is larger than the roll floor fraction p0: at the
-1% level the pair used here has p0 = 0.012 and P(T = 0) = 0.030, so the hurdle leaves d_min at
-p0 while T is still 0, giving a vertical segment at x = 0. Setting `p0_from = "genes"` uses
-P(T = 0) as the hurdle atom and removes it.
-
 ## Resource benchmark
 
 `resource-scaling.sh` times one shared index against `1x1` (baseline), `1xN` (query scaling) and
