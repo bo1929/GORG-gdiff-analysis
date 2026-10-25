@@ -12,6 +12,10 @@ library(cowplot)
 # install.packages("ggforce")
 library(ggforce)
 library(ggpubr)
+library(readr)
+library(cowplot); library(patchwork); library(stringr)
+library(ggstar);
+library(grid)
 
 dfg <- vroom("results/genes-joined-all.tsv.gz")
 dff <- dfg
@@ -22,8 +26,8 @@ p1 <- dfr %>%
   filter(case %in% c("NxQ", "index_N")) %>%
   filter(threads == 8) %>%
   mutate(case = case_when(
-    case == "NxQ" ~ "Query 10x100",
-    case == "index_N" ~ "Index 100",
+    case == "NxQ" ~ "Query\n10x100",
+    case == "index_N" ~ "Index\n100",
     TRUE ~ case
   )) %>%
   ggplot(aes(y = case, x = wall_s, fill = reorder(tool, -wall_s), group = reorder(tool, -wall_s))) +
@@ -32,7 +36,7 @@ p1 <- dfr %>%
     aes(label = round(wall_s, 0), color=reorder(tool, -wall_s)),
     position = position_dodge2(width = 0.66),
     hjust = -0.15,
-    size = 4,
+    size = 3,
     fontface = "bold",
     show.legend = FALSE
   ) +
@@ -50,8 +54,8 @@ p2 <- dfr %>%
   filter(case %in% c("NxQ", "index_N")) %>%
   filter(threads == 8) %>%
   mutate(case = case_when(
-    case == "NxQ" ~ "Query 10x100",
-    case == "index_N" ~ "Index 100",
+    case == "NxQ" ~ "Query\n10x100",
+    case == "index_N" ~ "Index\n100",
     TRUE ~ case
   )) %>%
   ggplot(aes(y = case, x = peak_rss_mb/1000, fill = reorder(tool, -wall_s), group = reorder(tool, -wall_s))) +
@@ -59,7 +63,7 @@ p2 <- dfr %>%
   geom_text(
     aes(label = round(peak_rss_mb/1000, 3), color=reorder(tool, -wall_s)),
     position = position_dodge(width = 0.66),
-    size=4,
+    size=3,
     hjust = -0.15,
     fontface = "bold",
     show.legend = FALSE
@@ -74,18 +78,12 @@ p2 <- dfr %>%
 p2
 ggsave2("./S-peak-memory-wfmash-nt8.pdf", width = 4.25, height = 4.5)
 
-# no truth filter: MAE needs no division, so genes at D = 0 stay in.
 dfg <- dff
 thw <- 0.5
 
-# Both methods are scored on the same genes: wfmash aligned >= 50% of the gene AND
-# gdiff has an estimate (the intersection).
 inter <- dfg %>%
   filter(included == 1, wf_cov >= thw, is.finite(wf_rate), is.finite(d_gd))
 
-# Coverage denominator: everything except the length filter and the no-window-inside case.
-# The rest counts as a miss for a method that has no estimate: gdiff is uncovered when d_gd
-# is NA (gdiff_nan), wfmash is uncovered when wf_cov < 0.5 (including no alignment at all).
 eligible <- dfg %>% filter(!reason %in% c("shorter_than_window", "no_window_inside"))
 cov_wf <- mean(eligible$wf_cov >= thw & is.finite(eligible$wf_rate))
 cov_gd <- mean(is.finite(eligible$d_gd))
@@ -114,8 +112,6 @@ p3 <- ggplot() +
 p3
 ggsave2("./S-mape-corr-wfmash.pdf", width = 4.25, height = 4.5)
 
-# MAE per gene-D bin on the same intersection; the labels above the bars are the
-# share of eligible genes in that bin for which the method has an estimate.
 brks <- c(0, 0.05, 0.1, 0.2, 0.3, 0.55)
 
 cov_bin <- eligible %>%
@@ -157,9 +153,89 @@ bins %>%
   labs(x = TeX(r'(Gene $D$)'), y = "MAE")
 ggsave2("./S-mape-cov-wfmash.pdf", width = 4.5, height = 4.5)
 
+
+options(scipen = 999)
+
+df <- vroom("threshold-per-pair.tsv", comment = "#")
+df <- df %>% mutate(ratevar=if_else(grepl("a5", variant), "High rate variation", "Low rate variation"))
+df <- df %>% filter(dataset == "uniform-intergenic")
+
+pth <- df %>% 
+  filter(config=="k25-w29-frac1.0") %>%
+  filter(!grepl("gnd00000", variant)) %>%
+  filter(l == 1000) %>%
+  ggplot() +
+  # geom_point() +
+  facet_wrap(~ratevar, nrow = 2) +
+  stat_summary_bin(size=0.15, alpha=0.75, aes(y = threshold_low, x = true_gnd, color=factor(level)), bins = 20) +
+  stat_summary_bin(size=0.15, alpha=0.75, aes(y = threshold_high, x = true_gnd, color=factor(level)), bins = 20) +
+  geom_abline(color="red") +
+  scale_color_discrete(palette="viridis") +
+  labs(x=TeX(r'($D$)'), y=TeX(r'(Threshold at $\alpha$)'), color=TeX(r'($\alpha$)')) +
+  theme_bw()
+pth
+
 plot_grid(
   p3 + theme(legend.position = "bottom"),
   p1 + theme(legend.position = "none", axis.title.y = element_blank()),
   p2 + theme(legend.position = "none", axis.title.y = element_blank(), axis.text.y = element_blank()),
-  nrow=1, rel_widths = c(0.8, 0.75, 0.5)
+  pth + theme(legend.position = "bottom") + 
+    guides(color = guide_legend(nrow = 2, byrow = TRUE)) +
+    theme(legend.margin = margin(0, 0, 0, 0)),
+  nrow=1, rel_widths = c(0.8, 0.75, 0.55, 0.7)
 )
+ggsave2("./combined-plot.pdf", width = 9, height = 3.5)
+
+draw_key_arrow <- function(data, params, size) {
+  grid::gTree(children = grid::gList(
+    grid::textGrob("empirical", x = 0.00, hjust = 0.25, gp = grid::gpar(fontsize = 9)),
+    grid::segmentsGrob(0.38, 0.5, 0.62, 0.5,
+                       gp = grid::gpar(lwd = 1.2),
+                       arrow = grid::arrow(length = grid::unit(2, "pt"), type = "closed")),
+    grid::textGrob("model", x = 0.98, hjust = 1, gp = grid::gpar(fontsize = 9))
+  ))
+}
+
+arrow_legend <- data.frame(
+  ratevar = unique(df$ratevar)[1],
+  x = 0, xend = 0, y = 0, yend = 0,
+  direction = "arrow"
+)
+
+p2 <- df %>%
+  filter(config=="k25-w29-frac1.0") %>%
+  filter(!grepl("gnd00000", variant)) %>%
+  filter(l == 1000) %>%
+  # mutate(gnd_bin=cut(true_gnd, c(1:20)/100)) %>%
+  mutate(gnd_bin=round(true_gnd, 2)) %>%
+  filter(level==0.01) %>%
+  group_by(ratevar, gnd_bin, level) %>%
+  summarize(
+    threshold_low=mean(threshold_low),
+    threshold_high=mean(threshold_high),
+    truth_realized_tail_low=mean(truth_realized_tail_low),
+    truth_realized_tail_high=mean(truth_realized_tail_high)
+  ) %>%
+  ggplot() +
+  # geom_abline() +
+  # geom_point(alpha=0.1) +
+  # facet_grid(rows=vars(ratevar), cols=vars(level)) +\
+  facet_wrap(~ratevar, scale="free") +
+  geom_segment(arrow = arrow(length = unit(2, "pt"), type = "closed"),
+               aes(color=gnd_bin, xend = threshold_low, x = truth_realized_tail_low, y=threshold_high, yend = truth_realized_tail_high)
+               # aes(color=gnd_bin, x = threshold_low, y = truth_realized_tail_low, xend=threshold_high, yend = truth_realized_tail_high)
+  ) +
+  # legend-only arrow; colour=NA keeps it out of the panel
+  geom_segment(data=arrow_legend,
+               aes(x=x, xend=xend, y=y, yend=yend, linetype=direction),
+               inherit.aes=FALSE, colour=NA,
+               arrow=arrow(length=unit(2, "pt"), type="closed"),
+               key_glyph=draw_key_arrow, show.legend=TRUE) +
+  scale_linetype_manual(values=c("arrow"="solid"), name=NULL) +
+  guides(linetype=guide_legend(label=FALSE, title=NULL, keywidth=unit(90, "pt"), keyheight=unit(0.5, "cm"), order=2)) +
+  scale_color_viridis_c(option = "mako", end = 0.85) +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  labs(x=TeX(r'(Lower tail ($\alpha=0.01$))'), y=TeX(r'(Upper tail ($\alpha=0.01$))'), color=TeX(r'($D$)')) # +
+# theme(strip.text = element_blank(), strip.background = element_blank())
+p2

@@ -1,14 +1,17 @@
-/sketches/
+**/sketches/
 # Per-run gene-level artifacts. The collected tables in this directory
 # (plan, metrics, genome-all, genes-joined-all, resources-all) are tracked on purpose.
 simulations/gene-level/results/mutated_*/
 
 *.gs
+*.skc
 *.gdsk
 
 *.tmp
 *.Rhistory
 *.pdf
+*.png
+
 # Benchmark runs: the reference outputs under resource-benchmarking/output-<seed>/
 # are tracked on purpose (plot-resource.R reads their resources.tsv, and
 # run_benchmarks.sh skips methods already recorded there); this line only keeps
@@ -42,7 +45,6 @@ windows.fa
 
 # Local workdirs / scratch outputs (keep scripts, not runs)
 **/*_work/
-**/*benchmark/
 **/.work_*/
 
 # Compiled helpers from scripts/Makefile (sources are tracked, binaries are not)
@@ -53,4 +55,4 @@ windows.fa
 /scripts/summarize-gdiff-sample
 
 # Global reusable sketch/cache tree (large binaries)
-/.cache/
+**/.cache/
